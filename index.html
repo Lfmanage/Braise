@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Braise</title>
 <meta name="apple-mobile-web-app-title" content="Braise">
 <meta name="theme-color" content="#09090c">
@@ -378,6 +378,33 @@ main{overflow-x:clip}
 .view{overflow-x:hidden}
 .view .in{overflow-x:clip}
 
+/* page « chaîne » épurée */
+.ncard,#nxChan>.lab,#nxChan>.big,#hideForm,#nxChBtns,#nxCnt{display:none!important}
+.chhead{flex-wrap:nowrap;margin:2px 0 10px}
+#nxChName{flex:1;min-width:0;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chb{flex:none}
+.favb,.hcb{white-space:nowrap;padding:7px 11px;font-size:12px}
+.sk{height:64px;border-radius:12px;margin-bottom:8px;background:linear-gradient(90deg,var(--s2),var(--s3),var(--s2));background-size:200% 100%;animation:sk 1.2s linear infinite}
+.sent{height:1px}
+
+/* accueil épuré */
+#chSec,#upCard,#listSec .hint,#list .empty{display:none!important}
+#listSec:has(#list .empty){display:none}
+
+/* Liste ♥ : compacte */
+#listSec{margin-top:14px}
+#listSec .sh{margin-bottom:6px}
+#listSec .sh h2{font-size:15px}
+#list .it{padding:3px 4px;gap:8px;margin-bottom:1px;border-radius:10px}
+#list .it img{width:58px;height:33px;border-radius:6px}
+#list .it .n{width:16px;font-size:11px}
+#list .it .tt2{font-size:12px;line-height:1.25;-webkit-line-clamp:1}
+#list .it small{font-size:10px;margin-top:0}
+#list .it b{width:26px;height:26px;font-size:12px}
+
+/* pas de zoom au double appui */
+html,body,button,a,input,label,.view,main{touch-action:manipulation}
+
 </style>
 </head>
 <body>
@@ -427,7 +454,7 @@ main{overflow-x:clip}
 </div>
 
 <div class="sec" id="listSec">
-  <div class="sh"><h2>Ma liste<span id="lcount"></span></h2>
+  <div class="sh"><h2>Liste ♥<span id="lcount"></span></h2>
     <div class="shb"><button type="button" class="chip" id="shuf" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Aléatoire</button>
     <button type="button" class="chip" id="openNext">Et ensuite ?</button></div>
   </div>
@@ -452,14 +479,14 @@ main{overflow-x:clip}
   <button type="button" data-tab="home" aria-current="page"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg></span>Accueil</button>
   <button type="button" data-tab="search"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>Recherche</button>
   <button type="button" data-tab="chans"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg></span>Chaînes</button>
-  <button type="button" data-tab="list"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h9M3 6h.01M3 12h.01M3 18h.01"/></svg></span>Ma liste</button>
+  <button type="button" data-tab="list"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h9M3 6h.01M3 12h.01M3 18h.01"/></svg></span>Liste ♥</button>
 </nav>
 
 <section class="view player" id="vPlayer" aria-label="Lecteur"><div class="in">
   <div class="pglow" id="pGlow" aria-hidden="true"></div>
   <div class="vh pvh">
     <button type="button" class="ib" data-close aria-label="Fermer le lecteur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-    <div class="pfrom"><small>LECTURE EN COURS</small><span id="pFrom">Ma liste</span></div>
+    <div class="pfrom"><small>LECTURE EN COURS</small><span id="pFrom">Liste ♥</span></div>
     <button type="button" class="ib" id="pVideo" aria-label="Voir la vidéo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg></button>
   </div>
   <div class="part"><img id="pArt" alt=""></div>
@@ -540,7 +567,7 @@ main{overflow-x:clip}
   <label class="tg"><span>Suggestions auto<small>À la fin, même artiste</small></span><input type="checkbox" class="sw" id="autoSug" checked><span class="knob"></span></label>
   <label class="tg"><span>Feu de cheminée<small>Bruit de cheminée en fond</small></span><input type="checkbox" class="sw" id="crackle"><span class="knob"></span></label>
 
-  <label class="tg"><span>Lecteur iPhone<small>Plein écran + image dans l'image (rouvre l'appli)</small></span><input type="checkbox" class="sw" id="nativeFs" checked><span class="knob"></span></label>
+  <label class="tg"><span>Lecteur iPhone<small>Plein écran + coin. Décoché : vidéo dans l'appli</small></span><input type="checkbox" class="sw" id="nativeFs" checked><span class="knob"></span></label>
 </div>
   <div hidden><label for="kIn">Clé YouTube</label>
   <input type="text" id="kIn" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -548,7 +575,7 @@ main{overflow-x:clip}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 36</div>
+  <div class="lab" id="ver">Version 41</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1037,7 +1064,7 @@ function suggest(q,cb){
 }
 function openSearch(q){
   openView('vSearch');const i=$('#sq');i.value=q||'';$('#sugs').textContent='';
-  if(q)doSearch();else setMsg($('#sres'),(API_KEY||relayUp())?'Tape le nom d\'un artiste, d\'une chaîne ou d\'une vidéo.':errMsg({reason:'nokey'})+' Sans clé, la recherche marche parfois via des serveurs publics.');
+  if(q)doSearch();else (API_KEY||relayUp())?$('#sres').replaceChildren():setMsg($('#sres'),errMsg({reason:'nokey'})+' Sans clé, la recherche marche parfois via des serveurs publics.');
   i.focus();
 }
 let searchOrder='relevance',sQ='',sNext=null,sCount=0;
@@ -1121,7 +1148,7 @@ function toggleFav(id,name){
   renderRecent();updateFavBtn();
 }
 function updateFavBtn(){const b=$('#favBtn');if(!b)return;const s=nx.favSrc;b.hidden=!s;if(!s)return;
-  const on=isFav(s.id);b.setAttribute('aria-pressed',String(on));b.textContent=on?'★ Favori':'☆ Ajouter aux favoris'}
+  const on=isFav(s.id);b.setAttribute('aria-pressed',String(on));b.textContent=on?'★ Favori':'☆ Favori'}
 function chipRow(box,lab,arr,star){
   box.textContent='';box.hidden=lab.hidden=!arr.length;
   arr.forEach(c=>{const b=document.createElement('button');b.type='button';b.textContent=(star?'★ ':'')+(c.name||'Chaîne');b.onclick=()=>openChannelView(c.id,c.name);box.appendChild(b)});
@@ -1183,29 +1210,36 @@ async function loadChan(){
   }
   $('#nxChName').textContent=src.name||'Cette chaîne';$('#nxChBtns').hidden=false;nx.favSrc=src;updateFavBtn();updateHideInfo();
   if(nx.chan&&nx.chan.id===src.id)return;
-  nx.chan={id:src.id};nx.chItems=[];nx.chDone=false;nx.chApply=null;nx.chOrder='new';[['new','#chNew'],['old','#chOld'],['rand','#chRand']].forEach(([k,s])=>$(s).classList.toggle('p',k==='new'));setMsg(box,'Chargement…');
-  /* aperçu illimité, sans les vidéos déjà écoutées (70 %) */
-  const chId=src.id;let n=0,shown=0,hidden=0,masked=0,tok=null,total=0,pages=0;const rule=hideRule(src.id,src.name);
-  const cnt=document.createElement('div');cnt.className='lab';cnt.id='nxCnt';
-  const txt=(more)=>shown+' à écouter'+(total?' sur '+total:'')+(hidden?' · '+hidden+' déjà écoutée'+(hidden>1?'s':'')+' masquée'+(hidden>1?'s':''):'')+(masked?' · '+masked+' de la période masquée':'')+(more?' · chargement…':'');
-  try{
-    do{
-      const p=await channelPage(chId,tok);
+  nx.chan={id:src.id};nx.chItems=[];nx.chDone=false;nx.chApply=null;nx.chOrder='new';nx.chChk=null;
+  /* chargement léger : une page à la fois (50 vidéos), la suite arrive quand tu descends */
+  box.textContent='';for(let k=0;k<6;k++){const s=document.createElement('div');s.className='sk';box.appendChild(s)}
+  const chId=src.id,rule=hideRule(src.id,src.name);
+  let tok=null,pages=0,shown=0,done=false,loading=false;
+  const sent=document.createElement('div');sent.className='sent';
+  async function more(){
+    if(loading||done)return;loading=true;
+    try{
+      let added=0;
+      while(added<20&&!done){
+        const p=await channelPage(chId,tok);
+        if(!nx.chan||nx.chan.id!==chId)return;
+        if(pages===0){box.textContent='';if(!p.items.length){done=true;setMsg(box,"Cette chaîne n'a pas de vidéos publiques.");return}box.appendChild(sent)}
+        tok=p.next;pages++;if(!tok)done=true;
+        const fr=document.createDocumentFragment();
+        p.items.forEach(x=>{if(heard.has(x.id)||hiddenByRule(x,rule))return;shown++;added++;nx.chItems.push(x);fr.appendChild(resCard(x,shown))});
+        box.insertBefore(fr,sent);
+      }
+    }catch(e){
       if(!nx.chan||nx.chan.id!==chId)return;
-      if(pages===0){box.textContent='';if(!p.items.length){setMsg(box,"Cette chaîne n'a pas de vidéos publiques.");return}box.appendChild(cnt)}
-      tok=p.next;pages++;if(p.total)total=p.total;
-      const fr=document.createDocumentFragment();
-      p.items.forEach(x=>{n++;if(heard.has(x.id)){hidden++;return}if(hiddenByRule(x,rule)){masked++;return}shown++;nx.chItems.push(x);if(nx.chOrder==='new')fr.appendChild(resCard(x,shown))});
-      if(nx.chOrder==='new')box.appendChild(fr);else{cnt.textContent=txt(true)}cnt.textContent=txt(!!tok);
-    }while(tok&&pages<400);
-    nx.chDone=true;
-    nx.chApply=()=>{
-      let a=nx.chItems.slice();if(nx.chOrder==='old')a.reverse();else if(nx.chOrder==='rand')shuffleArr(a);
-      box.textContent='';box.appendChild(cnt);const fr=document.createDocumentFragment();a.forEach((x,k)=>fr.appendChild(resCard(x,k+1)));box.appendChild(fr)};
-    nx.chApply();
-    cnt.textContent=txt(false);
-    if(!shown)cnt.textContent='Plus rien à afficher : tout est écouté ou dans la période masquée ('+(hidden+masked)+').';
-  }catch(e){if(!n){nx.chan=null;setMsg(box,errMsg(e),reloadChan)}else cnt.textContent=txt(false)+' (chargement interrompu : '+errMsg(e)+')'}
+      done=true;if(!shown&&pages===0){nx.chan=null;setMsg(box,errMsg(e),reloadChan)}
+    }finally{
+      loading=false;
+      if(done&&nx.chan&&nx.chan.id===chId){nx.chDone=true;sent.remove();if(!shown&&pages>0)setMsg(box,'Plus rien à afficher : tout est déjà écouté.')}
+      else requestAnimationFrame(()=>nx.chChk&&nx.chChk());
+    }
+  }
+  nx.chChk=()=>{if(!done&&!loading&&sent.isConnected&&sent.getBoundingClientRect().top<window.innerHeight+800)more()};
+  more();
 }
 function setChanOrder(o){
   nx.chOrder=o;
@@ -1214,6 +1248,7 @@ function setChanOrder(o){
   else if(nx.chItems&&nx.chItems.length&&!nx.chDone){/* le rendu final appliquera l'ordre */const c=$('#nxCnt');if(c&&o!=='new'){$('#nxChRes').querySelectorAll('.res').forEach(e=>e.remove())}}
 }
 document.querySelectorAll('#vNext .tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+$('#vNext').addEventListener('scroll',()=>{if(nx.chChk)nx.chChk()},{passive:true});
 $('#nxGo').onclick=runArtist;
 $('#nxQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#nxQ').blur();runArtist()}});
 $('#chNew').onclick=()=>setChanOrder('new');$('#chOld').onclick=()=>setChanOrder('old');$('#chRand').onclick=()=>setChanOrder('rand');
@@ -1491,7 +1526,7 @@ $('#clearListBtn').onclick=()=>{
 $('#cleanBtn').onclick=()=>{cleanList(false)};
 try{if(!localStorage.getItem('bg_clean_v14')){localStorage.setItem('bg_clean_v14','1');cleanList(true)}}catch(e){}
 $('#nativeFs').checked=nativeFs();
-$('#nativeFs').onchange=()=>{try{localStorage.setItem(LS_N,$('#nativeFs').checked?'1':'0')}catch(e){}toast('Ferme puis rouvre l\'appli pour appliquer')};
+$('#nativeFs').onchange=()=>{try{localStorage.setItem(LS_N,$('#nativeFs').checked?'1':'0')}catch(e){}toast($('#nativeFs').checked?'Lecteur iPhone : rechargement…':'Vidéo dans l\'appli : rechargement…');setTimeout(()=>{try{location.reload()}catch(e){}},600)};
 autoResume();
 loadApis();
 
@@ -1681,7 +1716,7 @@ function uiSheet(){
   $('#pGlow').style.backgroundImage=`url(${thumb(c.id)})`;
   $('#pTitle').textContent=c.title;$('#pChName').textContent=c.chT||'Chaîne inconnue';
   const av=$('#pAv');const na=avEl(c.chT||'?');na.id='pAv';av.replaceWith(na);
-  $('#pFrom').textContent=c.tmp?(c.sug?'Suggestion automatique':'Lecture directe'):'Ma liste';
+  $('#pFrom').textContent=c.tmp?(c.sug?'Suggestion automatique':'Lecture directe'):'Liste ♥';
   const f=$('#pFav');f.hidden=!c.ch;if(c.ch){const on=isFav(c.ch);f.setAttribute('aria-pressed',String(on));f.textContent=on?'★ Favori':'☆ Favori'}
   $('#pAdd').hidden=!c.tmp;$('#pChan').disabled=!c.ch;
   uiTimer();uiRate();uiProgress();
