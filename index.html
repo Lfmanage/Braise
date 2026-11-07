@@ -388,8 +388,7 @@ main{overflow-x:clip}
 .sent{height:1px}
 
 /* accueil épuré */
-#chSec,#upCard,#listSec .hint,#list .empty{display:none!important}
-#listSec:has(#list .empty){display:none}
+#chSec,#upCard{display:none!important}
 
 /* Liste ♥ : compacte */
 #listSec{margin-top:14px}
@@ -404,6 +403,24 @@ main{overflow-x:clip}
 
 /* pas de zoom au double appui */
 html,body,button,a,input,label,.view,main{touch-action:manipulation}
+
+/* bouton 🎵 */
+.res .ac{flex-direction:row;flex-wrap:wrap;width:68px;gap:4px}
+.rb.mu{font-size:14px;line-height:1}
+#list .it .lm{flex:none;width:28px;height:28px;border-radius:14px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;background:var(--s2)}
+.fc .fmu{position:absolute;right:6px;bottom:6px;width:30px;height:30px;border-radius:15px;background:rgba(0,0,0,.6);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
+
+/* v43 : page Liste ♥ ultra compacte + « Et ensuite ? » épuré */
+#listSec{display:none!important}
+#vNext .vh h1,#vNext .tabs,#hideChBtn{display:none!important}
+#vList .vh h1 small,#lcount{font-size:13px;color:var(--mut);font-weight:400}
+#list .empty{display:block!important;color:var(--mut);font-size:13px;padding:24px 4px;text-align:center}
+#list .it{padding:2px 4px;gap:7px;margin-bottom:0;border-radius:8px;min-height:36px}
+#list .it img{width:46px;height:26px;border-radius:5px}
+#list .it .n{display:none}
+#list .it .tt2{font-size:12.5px;-webkit-line-clamp:1}
+#list .it small{font-size:10px;line-height:1.1}
+#list .it .lm,#list .it b{width:24px;height:24px;font-size:11px;border-radius:12px}
 
 </style>
 </head>
@@ -453,14 +470,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   <div class="feed" id="feed"></div>
 </div>
 
-<div class="sec" id="listSec">
-  <div class="sh"><h2>Liste ♥<span id="lcount"></span></h2>
-    <div class="shb"><button type="button" class="chip" id="shuf" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Aléatoire</button>
-    <button type="button" class="chip" id="openNext">Et ensuite ?</button></div>
-  </div>
-  <div class="hint">Glisse une vidéo vers la gauche pour la masquer.</div>
-  <div id="list"></div>
-</div>
+<div hidden id="listSec"><button type="button" class="chip" id="shuf" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Aléatoire</button><button type="button" class="chip" id="openNext">Et ensuite ?</button></div>
 
 <div hidden><div class="lab" id="favLab"></div><div class="rc" id="favs"></div><div class="lab" id="rcLab"></div><div class="rc" id="recent"></div><canvas id="scene" width="10" height="10"></canvas></div>
 </main>
@@ -515,6 +525,11 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   </div>
   <div class="sh"><h2>À suivre</h2><button type="button" class="lnk" id="pArtist">Même artiste</button></div>
   <div id="pQueue"></div>
+</div></section>
+
+<section class="view" id="vList" aria-label="Liste ♥"><div class="in">
+  <div class="vh"><button type="button" class="ib" data-close aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1>Liste ♥<span id="lcount"></span></h1></div>
+  <div id="list"></div>
 </div></section>
 
 <section class="view" id="vChans" aria-label="Chaînes"><div class="in">
@@ -575,7 +590,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 41</div>
+  <div class="lab" id="ver">Version 43</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -758,6 +773,7 @@ function goTo(i,finished){
 }
 function addItem(v,opt){
   opt=opt||{};v=itemFrom(v);if(!/^[\w-]{11}$/.test(v.id))return;
+  if(opt.playNow)musicMode=!!opt.music;
   const ex=list.findIndex(x=>x.id===v.id);
   if(ex>=0){
     if(opt.playNow){goTo(ex);return}
@@ -781,18 +797,20 @@ async function enrich(item){
 function render(){
   const box=$('#list');box.textContent='';
   const shownN=list.filter(x=>!x.tmp).length;
-  if(!shownN){const d=document.createElement('div');d.className='empty';d.textContent='Ta liste est vide. Cherche une vidéo pour allumer le feu.';box.appendChild(d)}
+  if(!shownN){const d=document.createElement('div');d.className='empty';d.textContent='Ta liste est vide.';box.appendChild(d)}
   const fr=document.createDocumentFragment();
   let num=0;
   list.forEach((v,i)=>{if(v.tmp)return;num++;const d=document.createElement('div');d.className='it'+(i===idx?' on':'')+(heard.has(v.id)?' heard':'');
-    d.innerHTML=`<span class="n"></span><img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt=""><div class="t"><div class="tt2"></div><small></small></div><span class="eq"><i></i><i></i><i></i></span><b aria-label="Retirer">✕</b>`;
+    d.innerHTML=`<span class="n"></span><img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt=""><div class="t"><div class="tt2"></div><small></small></div><span class="eq"><i></i><i></i><i></i></span><button type="button" class="lm" aria-label="Écouter en musique (son seul)">🎵</button><b aria-label="Retirer">✕</b>`;
     d.querySelector('.n').textContent=num;d.querySelector('.tt2').textContent=v.title;d.querySelector('small').textContent=[fmtDate(v.pub),isHeardTxt(v)].filter(Boolean).join(' · ');
-    const sw=attachSwipe(d,()=>{
+    const doMask=()=>{
       const prevL=list.slice(),prevI=idx,had=heard.has(v.id);heard.add(v.id);saveHeard();
       list.splice(i,1);if(i<idx)idx--;else if(idx>=list.length)idx=Math.max(0,list.length-1);hist=[];played=new Set();save();render();
-      toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard()}list=prevL;idx=prevI;hist=[];played=new Set();save();render()})});
-    d.onclick=()=>{if(sw.moved())return;goTo(i)};
-    d.querySelector('b').onclick=e=>{e.stopPropagation();list.splice(i,1);if(i<idx)idx--;else if(idx>=list.length)idx=Math.max(0,list.length-1);hist=[];played=new Set();save();render()};
+      toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard()}list=prevL;idx=prevI;hist=[];played=new Set();save();render()})};
+    const sw=attachSwipe(d,doMask);
+    d.onclick=()=>{if(sw.moved())return;musicMode=false;goTo(i)};
+    d.querySelector('.lm').onclick=e=>{e.stopPropagation();musicMode=true;goTo(i)};
+    d.querySelector('b').onclick=e=>{e.stopPropagation();doMask()};
     fr.appendChild(d)});
   box.appendChild(fr);
   $('#lcount').textContent=shownN?' · '+shownN:'';
@@ -846,7 +864,8 @@ function savePos(id,t,force){
 }
 function startFor(id){const r=resume;resume=null;if(r&&r.id===id&&r.t>3)return r.t;const t=posMap[id];return t>3?t:0}
 function ytLoad(id,start){try{start>0?yt.loadVideoById({videoId:id,startSeconds:start}):yt.loadVideoById(id)}catch(e){}}
-let token=0,pipedDownUntil=0;
+let token=0,pipedDownUntil=0,musicMode=false;
+const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 /* Lance la lecture. Sur iPhone, la lecture YouTube ne démarre toute seule que si elle part
    tout de suite après ton toucher : on la lance donc immédiatement, sans attendre les
    serveurs audio, puis on passe en « Audio iPhone » seulement si ça marche. */
@@ -854,6 +873,15 @@ async function play(){
   const v=list[idx];if(!v)return;const my=++token;userPaused=false;
   const st=startFor(v.id);curStart=st;if(!st)savePos(v.id,0,true);
   $('#cover').src=`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;meta();setPainting(v.id);touchChan(v);
+  if(musicMode){
+    /* 🎵 son seul : pas de vidéo, pas de plein écran. L'élément audio est « débloqué » tout de suite (geste), puis le vrai son arrive. */
+    setMode('loading');
+    try{if(ytReady)yt.stopVideo()}catch(e){}
+    try{au.src=SILENT;au.play().catch(()=>{})}catch(e){}
+    const s=await audioUrl(v.id);if(my!==token)return;
+    if(s){setMode('audio');au.src=s.url;if(st>0)au.addEventListener('loadedmetadata',()=>{try{au.currentTime=st}catch(e){}},{once:true});au.play().catch(()=>{});return}
+    toast('Son seul indisponible : vidéo lancée');au.pause();au.removeAttribute('src');setMode('yt');if(ytReady)ytLoad(v.id,st);return;
+  }
   if($('#audioMode').checked&&Date.now()>pipedDownUntil){
     setMode('loading');
     if(ytReady)ytLoad(v.id,st);
@@ -1042,9 +1070,11 @@ function resCard(v,n){
   const ac=document.createElement('div');ac.className='ac';
   const bp=document.createElement('button');bp.type='button';bp.className='rb p';bp.setAttribute('aria-label','Lancer');bp.innerHTML=svgI('<path d="M8 5.5v13l11-6.5z"/>',true);
   bp.onclick=e=>{e.stopPropagation();addItem(v,{playNow:true});closeViews()};
+  const bm=document.createElement('button');bm.type='button';bm.className='rb mu';bm.setAttribute('aria-label','Écouter en musique (son seul)');bm.textContent='🎵';
+  bm.onclick=e=>{e.stopPropagation();addItem(v,{playNow:true,music:true});closeViews()};
   const ba=document.createElement('button');ba.type='button';ba.className='rb';ba.setAttribute('aria-label','Ajouter à ma liste');ba.innerHTML=svgI('<path d="M12 5v14M5 12h14"/>',false);
   ba.onclick=e=>{e.stopPropagation();addItem(v)};
-  ac.append(bp,ba);d.append(th,tx,ac);
+  ac.append(bp,bm,ba);d.append(th,tx,ac);
   const sw=attachSwipe(d,()=>{const had=heard.has(v.id);markHeard(v.id);
     toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard();render()}d.style.display='';d.classList.remove('heard')})});
   const oc=d.onclick;d.onclick=e=>{if(sw.moved())return;oc(e)};
@@ -1531,7 +1561,7 @@ autoResume();
 loadApis();
 
 /* ================= Interface v30 (Braise) : accueil, mini-lecteur, lecteur, chaînes ================= */
-VIEWS.push('vPlayer','vChans');
+VIEWS.push('vPlayer','vChans','vList');
 const UI={lastId:null,timer:null,rate:1,pfT:0,first:null,tab:'home'};
 try{UI.rate=+localStorage.getItem('bg_rate_v1')||1}catch(e){}
 const AVC=[['#ff7a3d','#c2185b'],['#1fb6ff','#7b2cbf'],['#36d1a3','#0b4f6c'],['#f9d423','#ff4e50'],['#7a5cff','#3a1c71'],['#ff5fa2','#5b1a8c']];
@@ -1546,7 +1576,7 @@ function ago(s){if(!s)return '';const d=(Date.now()-new Date(s))/864e5;if(isNaN(
 const _setPlaying=setPlaying;setPlaying=function(p){_setPlaying(p);uiPlay()};
 const _render=render;render=function(){_render();uiCur()};
 const _renderRecent=renderRecent;renderRecent=function(){_renderRecent();uiStories();if($('#vChans').classList.contains('on'))uiChans()};
-const _openView=openView;openView=function(id){_openView(id);document.body.classList.toggle('psheet',id==='vPlayer');setTabUI(id==='vSearch'?'search':id==='vChans'?'chans':'')};
+const _openView=openView;openView=function(id){_openView(id);document.body.classList.toggle('psheet',id==='vPlayer');setTabUI(id==='vSearch'?'search':id==='vChans'?'chans':id==='vList'?'list':'')};
 const _closeViews=closeViews;closeViews=function(){_closeViews();document.body.classList.remove('psheet');setTabUI('home')};
 const _next=next;next=function(fin){
   if(fin===true&&UI.timer&&UI.timer.end){UI.timer=null;userPaused=true;try{engine==='audio'?au.pause():yt.pauseVideo()}catch(e){}uiTimer();toast('Minuterie : la lecture est en pause. Bonne nuit !');return}
@@ -1702,6 +1732,7 @@ function drawFeed(items){
     if(v.pub&&Date.now()-new Date(v.pub)<3*864e5){const n=document.createElement('span');n.className='new';n.textContent='NOUVEAU';th.appendChild(n)}
     const add=document.createElement('button');add.type='button';add.className='fadd';add.setAttribute('aria-label','Ajouter à ma liste');add.innerHTML=svgI('<path d="M12 5v14M5 12h14"/>',false);
     add.onclick=e=>{e.stopPropagation();addItem(v)};th.appendChild(add);
+    const mu=document.createElement('button');mu.type='button';mu.className='fmu';mu.setAttribute('aria-label','Écouter en musique (son seul)');mu.textContent='🎵';mu.onclick=e=>{e.stopPropagation();addItem(v,{playNow:true,music:true})};th.appendChild(mu);
     const t=document.createElement('div');t.className='ft';t.textContent=v.title;
     const m=document.createElement('div');m.className='fm';m.textContent=[v.chT,ago(v.pub)].filter(Boolean).join(' · ');
     b.append(th,t,m);b.onclick=()=>{addItem(v,{playNow:true})};box.appendChild(b)});
@@ -1765,7 +1796,7 @@ document.querySelectorAll('#tabbar button').forEach(b=>b.onclick=()=>{const t=b.
   if(t==='home'){closeViews();window.scrollTo({top:0,behavior:'smooth'})}
   else if(t==='search')openSearch('');
   else if(t==='chans'){uiChans();openView('vChans')}
-  else if(t==='list'){closeViews();setTabUI('list');$('#listSec').scrollIntoView({behavior:'smooth',block:'start'})}});
+  else if(t==='list'){openView('vList')}});
 
 /* ---- horloge de l'interface (1 s) ---- */
 setInterval(()=>{
