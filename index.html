@@ -286,6 +286,70 @@ body.psheet .mini{display:none}
 .cr.hid{opacity:.75}
 .cr .cs svg{width:18px;height:18px}
 
+/* ===== v33 : plus compact, plus d'air ===== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-size:14px}
+main{padding-bottom:calc(120px + var(--safeB))}
+.top{height:42px}
+.brand h1{font-size:19px}
+.dot{width:24px;height:24px;border-radius:7px}
+.ib{width:36px;height:36px;border-radius:18px}.ib svg{width:17px;height:17px}
+.greet{font-size:20px;letter-spacing:-.5px;margin:6px 0 12px}
+.sbar{height:40px;border-radius:12px;font-size:14px;padding:0 12px}.sbar svg{width:16px;height:16px}
+.hero{margin-top:12px;border-radius:18px}
+.hinfo{padding:10px 12px 6px;gap:10px}
+.htext small{font-size:9.5px}
+#now{font-size:14.5px}
+.bigplay{width:42px;height:42px;border-radius:21px}.bigplay svg{width:18px;height:18px}
+#bar{margin:2px 12px 12px}
+.sec{margin-top:16px}
+.sh{margin-bottom:8px}
+.sh h2{font-size:16px}.sh h2 span{font-size:13px}
+.lnk{font-size:12px}
+.chip{padding:6px 10px;font-size:12px}
+.hint{font-size:11px}
+.story{width:56px;gap:4px}.story .av{width:42px;height:42px;font-size:15px}.story small{font-size:10px;max-width:58px}
+.stories{gap:8px}
+.upcard{margin-top:14px;padding:8px;gap:10px;border-radius:14px}
+.upcard img{width:80px;height:45px;border-radius:8px}
+.uptx span{font-size:12.5px}.uptx small{font-size:9.5px}
+.upbtn{font-size:11.5px;padding:6px 9px}
+.fc,.fc .fth,.fsk{width:140px}.fc .fth{height:79px;border-radius:10px}.fc .ft{font-size:12px}.fc .fm{font-size:10.5px}
+#list .it{padding:4px;gap:9px;margin-bottom:2px}
+#list .it img{width:72px;height:41px;border-radius:8px}
+#list .it .tt2{font-size:12.5px}#list .it small{font-size:10.5px}
+#list .it b{width:30px;height:30px}
+.mini{bottom:calc(58px + var(--safeB));left:8px;right:8px;padding:6px 6px 8px;gap:6px;border-radius:14px}
+.mopen img{width:50px;height:32px;border-radius:7px}.mopen{gap:8px}
+.mt{font-size:12.5px}.mn{font-size:10.5px}
+.mpp{width:34px;height:34px}.mpp svg{width:15px;height:15px}
+.mnx{width:34px;height:34px}.mnx svg{width:18px}
+.tabbar{padding:4px 8px calc(4px + var(--safeB))}
+.tabbar button{min-height:44px;font-size:10px;gap:1px}
+.tabbar .ti{padding:3px 14px}.tabbar svg{width:19px;height:19px}
+.view .in{padding-bottom:calc(130px + var(--safeB))}
+.vh{min-height:42px;margin-bottom:6px}.vh h1{font-size:20px}
+.back{width:36px;height:36px;border-radius:18px}.back svg{width:18px;height:18px}
+.sf{height:40px}
+.chips button{padding:6px 10px;font-size:12px}
+.tabs button{padding:7px;font-size:12px}
+.big button{min-height:38px;font-size:12.5px}
+.res{padding:5px;gap:9px}.res .th{width:100px;height:56px}.res .tt{font-size:12.5px}.res .ch{font-size:10.5px}
+.rb{width:32px;height:32px}
+.tg{padding:9px 12px;gap:10px}.tg>span{font-size:13px}.tg small{font-size:11px;line-height:1.3}
+.knob{width:42px;height:24px;border-radius:12px}.knob:after{width:18px;height:18px}.sw:checked+.knob:after{transform:translateX(18px)}
+.set label[for]{font-size:12px;margin:12px 2px 4px}
+.set input[type=text]{height:40px;font-size:14px}
+.steps{font-size:11.5px;padding:10px 12px}
+.lab{font-size:11.5px}
+.cr{padding:7px 2px;gap:10px}.cr .av{width:40px;height:40px;font-size:14px}.cr .cn{font-size:14px}
+.ptitle{font-size:18px;margin-top:12px}
+.skip{width:42px;height:42px;font-size:12px}.pc{width:44px;height:44px}.pc svg{width:26px;height:26px}
+.pplay{width:64px;height:64px;border-radius:32px}.pplay svg{width:26px;height:26px}
+.pill{min-height:36px;font-size:12px}
+.qi img{width:80px;height:45px}.qi .qn{font-size:12.5px}
+#toast{bottom:calc(112px + var(--safeB));font-size:12.5px}
+
 </style>
 </head>
 <body>
@@ -294,14 +358,13 @@ body.psheet .mini{display:none}
 <header class="top">
   <div class="brand"><span class="dot" id="logoDot" aria-hidden="true"></span><h1 id="appName">Braise</h1></div>
   <div class="hbtns">
-    <button type="button" class="ib" id="paste" aria-label="Coller un lien YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V3.5h6V5"/></svg></button>
     <button type="button" class="ib" id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
   </div>
 </header>
 
 <div class="greet"><span id="hello">Bonsoir.</span><br><span class="grad" id="hello2">On reprend ?</span></div>
 
-<button type="button" class="sbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg><span>Rechercher une vidéo, une chaîne…</span></button>
+<button type="button" class="sbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg><span>Rechercher</span></button>
 
 <section class="hero" aria-label="En lecture">
   <div class="frame"><div id="stage">
@@ -458,7 +521,7 @@ body.psheet .mini{display:none}
   <div class="big"><button type="button" id="clearListBtn">Supprimer toute ma liste</button></div>
   <div class="big"><button type="button" id="undoBtn">Revenir à ma liste d'avant</button></div>
   <div class="big"><button type="button" id="cleanBtn">Nettoyer ma liste (écoutées et masquées)</button></div>
-  <div class="lab" id="ver">Version 32</div>
+  <div class="lab" id="ver">Version 33</div>
   <div class="steps">La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</div>
 </div></section>
 
@@ -664,7 +727,7 @@ async function enrich(item){
 function render(){
   const box=$('#list');box.textContent='';
   const shownN=list.filter(x=>!x.tmp).length;
-  if(!shownN){const d=document.createElement('div');d.className='empty';d.textContent='Ta liste est vide. Cherche une vidéo ou colle un lien pour allumer le feu.';box.appendChild(d)}
+  if(!shownN){const d=document.createElement('div');d.className='empty';d.textContent='Ta liste est vide. Cherche une vidéo pour allumer le feu.';box.appendChild(d)}
   const fr=document.createDocumentFragment();
   let num=0;
   list.forEach((v,i)=>{if(v.tmp)return;num++;const d=document.createElement('div');d.className='it'+(i===idx?' on':'')+(heard.has(v.id)?' heard':'');
@@ -1388,11 +1451,6 @@ $('#audioMode').onchange=$('#auto').onchange=$('#autoSug').onchange=save;
 $('#openSearch').onclick=()=>openSearch('');
 $('#openNext').onclick=openNext;
 $('#gear').onclick=openSet;
-$('#paste').onclick=async()=>{
-  try{const t=((await navigator.clipboard.readText())||'').trim();
-    if(t&&getId(t)&&/youtu\.?be/.test(t))add(t);else if(t)openSearch(t);else openSearch('')}
-  catch(e){openSearch('')}
-};
 $('#shuf').onclick=()=>{shuffle=!shuffle;$('#shuf').setAttribute('aria-pressed',String(shuffle));played=new Set();save();toast(shuffle?'Lecture aléatoire activée':'Lecture dans l\'ordre')};
 $('#shuf').setAttribute('aria-pressed',String(shuffle));
 
