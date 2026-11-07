@@ -337,7 +337,7 @@ header p{font-size:9px;letter-spacing:1.2px;margin-top:0}
   <div class="big"><button type="button" id="clearListBtn">Supprimer toute ma liste</button></div>
   <div class="big"><button type="button" id="undoBtn">Revenir à ma liste d'avant</button></div>
   <div class="big"><button type="button" id="cleanBtn">Nettoyer ma liste (écoutées et masquées)</button></div>
-  <div class="lab" id="ver">Version 27</div>
+  <div class="lab" id="ver">Version 28</div>
   <div class="steps">La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</div>
 </div></section>
 
@@ -401,22 +401,29 @@ async function audioUrl(id){
 
 /* ================= API YouTube (clé gratuite de l'utilisateur) ================= */
 const API='https://www.googleapis.com/youtube/v3';
+const RELAY='https://background-relais.sylvano-doudou63.workers.dev';
+let relayDownUntil=0;
+const relayUp=()=>Date.now()>relayDownUntil;
 async function yapi(path,params){
-  if(!API_KEY)throw Object.assign(new Error('nokey'),{reason:'nokey'});
-  const u=new URL(API+path);const p=Object.assign({},params,{key:API_KEY});Object.keys(p).forEach(k=>u.searchParams.set(k,p[k]));
+  const viaRelay=!API_KEY;
+  if(viaRelay&&!relayUp())throw Object.assign(new Error('nokey'),{reason:'nokey'});
+  const u=new URL((viaRelay?RELAY:API)+path);const p=viaRelay?Object.assign({},params):Object.assign({},params,{key:API_KEY});Object.keys(p).forEach(k=>u.searchParams.set(k,p[k]));
   /* jusqu'à 3 essais si le réseau a un raté (5G qui passe, etc.) */
   let r,last='';
-  for(let a=0;a<3&&!r;a++){
-    try{r=await fetchT(u.toString(),15000)}catch(e){last=String((e&&e.message)||e||'');if(a<2)await new Promise(z=>setTimeout(z,a?1500:500))}
+  for(let a=0;a<(viaRelay?1:3)&&!r;a++){
+    try{r=await fetchT(u.toString(),15000)}catch(e){last=String((e&&e.message)||e||'');if(a<2&&!viaRelay)await new Promise(z=>setTimeout(z,a?1500:500))}
   }
-  if(!r)throw Object.assign(new Error('net'),{reason:'net',detail:last});
+  if(!r){if(viaRelay)relayDownUntil=Date.now()+300000;throw Object.assign(new Error('net'),{reason:'net',detail:last})}
   const j=await r.json().catch(()=>({}));
-  if(!r.ok){const reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||('http'+r.status);throw Object.assign(new Error(reason),{reason})}
+  if(!r.ok){const reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||('http'+r.status);
+    if(viaRelay&&reason!=='quotaExceeded'&&reason!=='dailyLimitExceeded'&&reason!=='rateLimited')relayDownUntil=Date.now()+300000;
+    throw Object.assign(new Error(reason),{reason})}
   return j;
 }
 function errMsg(e){const r=e&&e.reason;
   if(r==='nokey')return "Ajoute ta clé YouTube dans les réglages (icône en haut à droite) pour utiliser la recherche.";
   if(r==='keyless')return "Impossible d'afficher la chaîne sans clé pour le moment (les serveurs gratuits ne répondent pas). Ajoute ta clé dans les réglages, ou réessaie plus tard.";
+  if(r==='rateLimited')return "Trop de demandes en peu de temps. Réessaie dans quelques minutes.";
   if(r==='quotaExceeded'||r==='dailyLimitExceeded')return "Le quota gratuit du jour est atteint. Il revient demain.";
   if(r==='keyInvalid'||r==='ipRefererBlocked'||r==='forbidden'||r==='accessNotConfigured'||/^http40[03]$/.test(r||''))return "La clé est refusée. Vérifie-la dans les réglages.";
   if(r==='net')return "Impossible de joindre YouTube"+(e&&e.detail?' ('+e.detail+')':'')+". Réessaie dans un instant.";
@@ -424,7 +431,8 @@ function errMsg(e){const r=e&&e.reason;
 
 async function searchVideos(q,o){
   o=o||{};
-  if(API_KEY){
+  let relayErr=null;
+  if(API_KEY||relayUp()){try{
     const sp={part:'snippet',type:'video',maxResults:o.max||15,q,regionCode:'FR'};if(o.order)sp.order=o.order;if(o.token)sp.pageToken=o.token;
     const j=await yapi('/search',sp);
     const base=(j.items||[]).filter(i=>i.id&&i.id.videoId).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),ch:i.snippet.channelId,chT:dec(i.snippet.channelTitle),pub:i.snippet.publishedAt||''}));
@@ -432,7 +440,7 @@ async function searchVideos(q,o){
       const m={};(d.items||[]).forEach(v=>{m[v.id]=isoDur(v.contentDetails&&v.contentDetails.duration)});base.forEach(x=>{x.dur=m[x.id]||''})}catch(e){}}
     base.next=j.nextPageToken||null;
     return base;
-  }
+  }catch(e){if(API_KEY||e.reason==='quotaExceeded'||e.reason==='dailyLimitExceeded'||e.reason==='rateLimited')throw e;relayErr=e}}
   /* secours sans clé : serveurs Piped publics (peut tomber en panne) */
   const l=await loadApis();
   for(const a of l.slice(0,6)){
@@ -479,9 +487,9 @@ async function keylessPage(chId,token){
   throw Object.assign(new Error('keyless'),{reason:'keyless'});
 }
 async function channelPage(chId,token){
-  if(!API_KEY)return keylessPage(chId,token);
+  if(!API_KEY&&!relayUp())return keylessPage(chId,token);
   const p={part:'snippet,contentDetails',playlistId:'UU'+chId.slice(2),maxResults:50};if(token)p.pageToken=token;
-  const j=await yapi('/playlistItems',p);
+  let j;try{j=await yapi('/playlistItems',p)}catch(e){if(API_KEY||e.reason==='quotaExceeded'||e.reason==='dailyLimitExceeded'||e.reason==='rateLimited')throw e;return keylessPage(chId,token)}
   const items=(j.items||[]).filter(i=>i.snippet&&i.snippet.resourceId&&i.snippet.resourceId.videoId&&i.snippet.title!=='Private video'&&i.snippet.title!=='Deleted video')
     .map(i=>({id:i.snippet.resourceId.videoId,title:dec(i.snippet.title),ch:chId,chT:dec(i.snippet.videoOwnerChannelTitle||i.snippet.channelTitle||''),pub:(i.contentDetails&&i.contentDetails.videoPublishedAt)||i.snippet.publishedAt||''}));
   return{items,next:j.nextPageToken||null,total:(j.pageInfo&&j.pageInfo.totalResults)||0};
@@ -527,7 +535,7 @@ async function add(raw){
   enrich(item);
 }
 async function enrich(item){
-  if(API_KEY){try{const j=await yapi('/videos',{part:'snippet',id:item.id});const s=j.items&&j.items[0]&&j.items[0].snippet;
+  if(API_KEY||relayUp()){try{const j=await yapi('/videos',{part:'snippet',id:item.id});const s=j.items&&j.items[0]&&j.items[0].snippet;
     if(s){item.title=dec(s.title);item.ch=s.channelId;item.chT=dec(s.channelTitle);item.pub=s.publishedAt||'';save();render();meta();if(item===list[idx])touchChan(item);return}}catch(e){}}
   try{const r=await fetchT('https://noembed.com/embed?url=https://www.youtube.com/watch?v='+item.id,6000);const j=await r.json();
     if(j.title){item.title=j.title;if(j.author_name&&!item.chT)item.chT=j.author_name;save();render();meta()}}catch(e){}
@@ -794,7 +802,7 @@ function suggest(q,cb){
 }
 function openSearch(q){
   openView('vSearch');const i=$('#sq');i.value=q||'';$('#sugs').textContent='';
-  if(q)doSearch();else setMsg($('#sres'),API_KEY?'Tape le nom d\'un artiste, d\'une chaîne ou d\'une vidéo.':errMsg({reason:'nokey'})+' Sans clé, la recherche marche parfois via des serveurs publics.');
+  if(q)doSearch();else setMsg($('#sres'),(API_KEY||relayUp())?'Tape le nom d\'un artiste, d\'une chaîne ou d\'une vidéo.':errMsg({reason:'nokey'})+' Sans clé, la recherche marche parfois via des serveurs publics.');
   i.focus();
 }
 let searchOrder='date',sQ='',sNext=null,sCount=0;
@@ -918,7 +926,7 @@ async function openNext(){
   openView('vNext');nx.vid=v.id;nx.chan=null;nx.chOv=null;nx.favSrc=null;$('#nxProg').textContent='';
   $('#nxNow').textContent=v.title;nx.artistQ=guessArtist(v);$('#nxQ').value=nx.artistQ;
   setTab('artist');setMsg($('#nxRes'),'Recherche…');
-  if(!v.ch&&API_KEY)await enrich(v);
+  if(!v.ch&&(API_KEY||relayUp()))await enrich(v);
   if(nx.vid!==v.id)return;
   $('#nxNow').textContent=v.title;
   if($('#nxQ').value===nx.artistQ){nx.artistQ=guessArtist(v);$('#nxQ').value=nx.artistQ}
@@ -933,7 +941,7 @@ async function loadChan(){
   const v=list[idx];const box=$('#nxChRes');
   let src=nx.chOv;
   if(!src){
-    if(!API_KEY&&v&&!v.ch){setMsg(box,'Recherche de la chaîne…');if(!v.title||/^Vidéo [\w-]{11}$/.test(v.title))await enrich(v);const c=await keylessChannelId(v.id,v.title);if(c){v.ch=c.id;if(c.name)v.chT=c.name;save()}}
+    if(!API_KEY&&!relayUp()&&v&&!v.ch){setMsg(box,'Recherche de la chaîne…');if(!v.title||/^Vidéo [\w-]{11}$/.test(v.title))await enrich(v);const c=await keylessChannelId(v.id,v.title);if(c){v.ch=c.id;if(c.name)v.chT=c.name;save()}}
     if(v&&!v.ch)await enrich(v);
     if(!v||!v.ch){$('#nxChBtns').hidden=true;setMsg(box,API_KEY?"Chaîne introuvable pour cette vidéo.":errMsg({reason:'keyless'}),API_KEY?null:()=>loadChan());return}
     src={id:v.ch,name:v.chT};
