@@ -337,7 +337,7 @@ header p{font-size:9px;letter-spacing:1.2px;margin-top:0}
   <div class="big"><button type="button" id="clearListBtn">Supprimer toute ma liste</button></div>
   <div class="big"><button type="button" id="undoBtn">Revenir à ma liste d'avant</button></div>
   <div class="big"><button type="button" id="cleanBtn">Nettoyer ma liste (écoutées et masquées)</button></div>
-  <div class="lab" id="ver">Version 28</div>
+  <div class="lab" id="ver">Version 29</div>
   <div class="steps">La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</div>
 </div></section>
 
@@ -438,8 +438,8 @@ async function searchVideos(q,o){
     const base=(j.items||[]).filter(i=>i.id&&i.id.videoId).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),ch:i.snippet.channelId,chT:dec(i.snippet.channelTitle),pub:i.snippet.publishedAt||''}));
     if(base.length){try{const d=await yapi('/videos',{part:'contentDetails',id:base.map(x=>x.id).join(',')});
       const m={};(d.items||[]).forEach(v=>{m[v.id]=isoDur(v.contentDetails&&v.contentDetails.duration)});base.forEach(x=>{x.dur=m[x.id]||''})}catch(e){}}
-    base.next=j.nextPageToken||null;
-    return base;
+    const keep=o.all?base:base.filter(x=>!heard.has(x.id));keep.next=j.nextPageToken||null;
+    return keep;
   }catch(e){if(API_KEY||e.reason==='quotaExceeded'||e.reason==='dailyLimitExceeded'||e.reason==='rateLimited')throw e;relayErr=e}}
   /* secours sans clé : serveurs Piped publics (peut tomber en panne) */
   const l=await loadApis();
@@ -447,7 +447,7 @@ async function searchVideos(q,o){
     try{const r=await fetchT(a+'/search?q='+encodeURIComponent(q)+'&filter=videos',7000);if(!r.ok)continue;
       const j=await r.json();
       const out=(j.items||[]).filter(x=>/watch\?v=/.test(x.url||'')).map(x=>({id:x.url.split('v=')[1].slice(0,11),title:x.title||'',chT:x.uploaderName||'',ch:((/\/channel\/(UC[\w-]{22})/.exec(x.uploaderUrl||''))||[])[1]||'',pub:x.uploaded>0?new Date(x.uploaded).toISOString():'',dur:x.duration>0?secDur(x.duration):''}));
-      if(out.length)return out}catch(e){}
+      const keep=o.all?out:out.filter(x=>!heard.has(x.id));if(keep.length)return keep}catch(e){}
   }
   throw Object.assign(new Error('nokey'),{reason:'nokey'});
 }
@@ -549,7 +549,11 @@ function render(){
   list.forEach((v,i)=>{if(v.tmp)return;num++;const d=document.createElement('div');d.className='it'+(i===idx?' on':'')+(heard.has(v.id)?' heard':'');
     d.innerHTML=`<span class="n"></span><img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt=""><div class="t"><div class="tt2"></div><small></small></div><span class="eq"><i></i><i></i><i></i></span><b aria-label="Retirer">✕</b>`;
     d.querySelector('.n').textContent=num;d.querySelector('.tt2').textContent=v.title;d.querySelector('small').textContent=[fmtDate(v.pub),isHeardTxt(v)].filter(Boolean).join(' · ');
-    d.onclick=()=>goTo(i);
+    const sw=attachSwipe(d,()=>{
+      const prevL=list.slice(),prevI=idx,had=heard.has(v.id);heard.add(v.id);saveHeard();
+      list.splice(i,1);if(i<idx)idx--;else if(idx>=list.length)idx=Math.max(0,list.length-1);hist=[];played=new Set();save();render();
+      toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard()}list=prevL;idx=prevI;hist=[];played=new Set();save();render()})});
+    d.onclick=()=>{if(sw.moved())return;goTo(i)};
     d.querySelector('b').onclick=e=>{e.stopPropagation();list.splice(i,1);if(i<idx)idx--;else if(idx>=list.length)idx=Math.max(0,list.length-1);hist=[];played=new Set();save();render()};
     fr.appendChild(d)});
   box.appendChild(fr);
@@ -592,13 +596,17 @@ function setMode(m){engine=m;const el=$('#mode');
 
 /* ================= Lecture ================= */
 /* reprise de la position : si Safari recharge la page, la vidéo repart là où elle en était */
-const LS_T='bg_pos_v1';let resume=null,curStart=0,posT=0;
+const LS_T='bg_pos_v1',LS_TM='bg_posmap_v1';let resume=null,curStart=0,posT=0,posMap={};
 try{const p=JSON.parse(localStorage.getItem(LS_T)||'null');if(p&&p.id&&p.t>3)resume=p}catch(e){}
+try{posMap=JSON.parse(localStorage.getItem(LS_TM)||'{}')||{}}catch(e){posMap={}}
 function savePos(id,t,force){
-  if(!id||!(t>=0))return;const now=Date.now();if(!force&&now-posT<4000)return;posT=now;
-  try{localStorage.setItem(LS_T,JSON.stringify({id,t:Math.floor(t)}))}catch(e){}
+  if(!id||!(t>=0))return;const now=Date.now();if(!force&&now-posT<2000)return;posT=now;
+  t=Math.floor(t);
+  if(t>3)posMap[id]=t;else delete posMap[id];
+  const ks=Object.keys(posMap);if(ks.length>60)ks.slice(0,ks.length-60).forEach(k=>delete posMap[k]);
+  try{localStorage.setItem(LS_T,JSON.stringify({id,t}));localStorage.setItem(LS_TM,JSON.stringify(posMap))}catch(e){}
 }
-function startFor(id){if(resume&&resume.id===id&&resume.t>3){const t=resume.t;resume=null;return t}resume=null;return 0}
+function startFor(id){const r=resume;resume=null;if(r&&r.id===id&&r.t>3)return r.t;const t=posMap[id];return t>3?t:0}
 function ytLoad(id,start){try{start>0?yt.loadVideoById({videoId:id,startSeconds:start}):yt.loadVideoById(id)}catch(e){}}
 let token=0,pipedDownUntil=0;
 /* Lance la lecture. Sur iPhone, la lecture YouTube ne démarre toute seule que si elle part
@@ -729,7 +737,7 @@ function tryResume(){if(!$('#auto').checked||userPaused)return;
   [200,700,1600,3500].forEach(t=>setTimeout(()=>{if(playing||userPaused)return;
     if(engine==='audio')au.play().catch(()=>{});else if(ytReady)yt.playVideo()},t))}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){tryResume();flushPos()}});
-window.addEventListener('pagehide',()=>flushPos());
+window.addEventListener('pagehide',()=>flushPos());window.addEventListener('freeze',()=>flushPos());
 function flushPos(){const cv=list[idx];if(!cv)return;try{const t=engine==='audio'?au.currentTime:(ytReady&&yt.getCurrentTime?yt.getCurrentTime():0);if(t>3)savePos(cv.id,t,true)}catch(e){}}
 
 /* lecteur iPhone : sans « playsinline », iOS ouvre la vidéo dans son lecteur plein écran (avec image dans l'image) */
@@ -753,6 +761,22 @@ function setMsg(box,t,retry){box.textContent='';const d=document.createElement('
   if(retry){const b=document.createElement('button');b.type='button';b.className='more';b.style.marginTop='10px';b.textContent='↻ Réessayer';b.onclick=retry;d.appendChild(b)}
   box.appendChild(d)}
 function svgI(p,fill){return `<svg viewBox="0 0 24 24" ${fill?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'} aria-hidden="true">${p}</svg>`}
+/* glisser vers la gauche sur un élément : appelle onDone() quand le geste est assez long */
+function attachSwipe(d,onDone){
+  let sx=0,sy=0,dx=0,drag=false,locked=false,moved=false;
+  d.style.touchAction='pan-y';
+  d.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;dx=0;drag=true;locked=false;moved=false;d.style.transition='none'},{passive:true});
+  d.addEventListener('touchmove',e=>{if(!drag)return;const t=e.touches[0];const x=t.clientX-sx,y=t.clientY-sy;
+    if(!locked){if(Math.abs(y)>12&&Math.abs(y)>Math.abs(x)){drag=false;d.style.transform='';return}if(Math.abs(x)>10)locked=true;else return}
+    dx=Math.min(0,x);moved=true;d.style.transform='translateX('+dx+'px)';d.style.opacity=String(Math.max(.35,1+dx/260))},{passive:true});
+  const end=()=>{if(!drag&&!moved)return;drag=false;d.style.transition='transform .2s,opacity .2s';
+    if(dx<-90){d.style.transform='translateX(-110%)';d.style.opacity='0';
+      setTimeout(()=>{d.style.display='none';d.style.transform='';d.style.opacity='';onDone()},200)}
+    else{d.style.transform='';d.style.opacity=''}
+    if(moved)setTimeout(()=>{moved=false},350)};
+  d.addEventListener('touchend',end);d.addEventListener('touchcancel',end);
+  return{moved:()=>moved};
+}
 function resCard(v,n){
   const d=document.createElement('div');d.className='res';
   if(!/^[\w-]{11}$/.test(v.id||''))return d;
@@ -771,21 +795,9 @@ function resCard(v,n){
   const ba=document.createElement('button');ba.type='button';ba.className='rb';ba.setAttribute('aria-label','Ajouter à ma liste');ba.innerHTML=svgI('<path d="M12 5v14M5 12h14"/>',false);
   ba.onclick=e=>{e.stopPropagation();addItem(v)};
   ac.append(bp,ba);d.append(th,tx,ac);
-  /* glisser vers la gauche = marquer comme écoutée (masquée) */
-  let sx=0,sy=0,dx=0,drag=false,locked=false,moved=false;
-  d.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;dx=0;drag=true;locked=false;moved=false;d.style.transition='none'},{passive:true});
-  d.addEventListener('touchmove',e=>{if(!drag)return;const t=e.touches[0];const x=t.clientX-sx,y=t.clientY-sy;
-    if(!locked){if(Math.abs(y)>12&&Math.abs(y)>Math.abs(x)){drag=false;d.style.transform='';return}if(Math.abs(x)>10)locked=true;else return}
-    dx=Math.min(0,x);moved=true;d.style.transform='translateX('+dx+'px)';d.style.opacity=String(Math.max(.35,1+dx/260))},{passive:true});
-  const end=()=>{if(!drag&&!moved)return;drag=false;d.style.transition='transform .2s,opacity .2s';
-    if(dx<-90){d.style.transform='translateX(-110%)';d.style.opacity='0';
-      setTimeout(()=>{d.style.display='none';d.style.transform='';d.style.opacity=''},200);
-      const had=heard.has(v.id);markHeard(v.id);
-      toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard();render()}d.style.display='';d.classList.remove('heard')})}
-    else{d.style.transform='';d.style.opacity=''}
-    if(moved)setTimeout(()=>{moved=false},350)};
-  d.addEventListener('touchend',end);d.addEventListener('touchcancel',end);
-  const oc=d.onclick;d.onclick=e=>{if(moved)return;oc(e)};
+  const sw=attachSwipe(d,()=>{const had=heard.has(v.id);markHeard(v.id);
+    toast('Vidéo masquée (marquée écoutée)','Annuler',()=>{if(!had){heard.delete(v.id);saveHeard();render()}d.style.display='';d.classList.remove('heard')})});
+  const oc=d.onclick;d.onclick=e=>{if(sw.moved())return;oc(e)};
   return d;
 }
 function showResults(box,items,empty){box.textContent='';if(!items.length){setMsg(box,empty);return}
@@ -816,7 +828,8 @@ async function doSearch(more){
   if(more!==true){$('#sugs').textContent='';sQ=q;sNext=null;sCount=0;setMsg(box,'Recherche…')}
   else{const mb=$('#sMore');if(mb){mb.disabled=true;mb.textContent='Chargement…'}}
   try{
-    const items=await searchVideos(q,{order:searchOrder,max:50,token:more===true?sNext:null});
+    let items=await searchVideos(q,{order:searchOrder,max:50,token:more===true?sNext:null});
+    for(let g=0;g<4&&!items.length&&items.next;g++)items=await searchVideos(q,{order:searchOrder,max:50,token:items.next});
     if(more!==true&&$('#sq').value.trim()!==q)return;
     if(more!==true){box.textContent='';if(!items.length){setMsg(box,'Aucun résultat.');return}}
     const old=$('#sMore');if(old)old.remove();
