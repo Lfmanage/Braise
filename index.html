@@ -422,6 +422,10 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
 #list .it small{font-size:10px;line-height:1.1}
 #list .it .lm,#list .it b{width:24px;height:24px;font-size:11px;border-radius:12px}
 
+/* v44 : directs */
+.res .th span.lv,.fth .lvb{background:#e5322d;color:#fff;font-weight:700}
+.res .th span.lv{font-size:10px}
+
 </style>
 </head>
 <body>
@@ -547,7 +551,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
     </div>
   </div>
   <div class="chips" id="sugs"></div>
-  <div class="tabs" id="sord"><button type="button" data-o="relevance" aria-pressed="true">Pertinence</button><button type="button" data-o="date" aria-pressed="false">Plus récentes</button></div>
+  <div class="tabs" id="sord"><button type="button" data-o="relevance" aria-pressed="true">Pertinence</button><button type="button" data-o="date" aria-pressed="false">Plus récentes</button><button type="button" data-o="live" aria-pressed="false">🔴 En direct</button></div>
   <div id="sres"></div>
 </div></section>
 
@@ -590,7 +594,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 43</div>
+  <div class="lab" id="ver">Version 44</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -686,9 +690,9 @@ async function searchVideos(q,o){
   o=o||{};
   let relayErr=null;
   if(API_KEY||relayUp()){try{
-    const sp={part:'snippet',type:'video',maxResults:o.max||15,q,regionCode:'FR'};if(o.order)sp.order=o.order;if(o.token)sp.pageToken=o.token;
+    const sp={part:'snippet',type:'video',maxResults:o.max||15,q,regionCode:'FR'};if(o.order==='live')sp.eventType='live';else if(o.order)sp.order=o.order;if(o.token)sp.pageToken=o.token;
     const j=await yapi('/search',sp);
-    const base=(j.items||[]).filter(i=>i.id&&i.id.videoId).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),ch:i.snippet.channelId,chT:dec(i.snippet.channelTitle),pub:i.snippet.publishedAt||''}));
+    const base=(j.items||[]).filter(i=>i.id&&i.id.videoId).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),ch:i.snippet.channelId,chT:dec(i.snippet.channelTitle),pub:i.snippet.publishedAt||'',live:i.snippet.liveBroadcastContent==='live'}));
     if(base.length){try{const d=await yapi('/videos',{part:'contentDetails',id:base.map(x=>x.id).join(',')});
       const m={};(d.items||[]).forEach(v=>{m[v.id]=isoDur(v.contentDetails&&v.contentDetails.duration)});base.forEach(x=>{x.dur=m[x.id]||''})}catch(e){}}
     const keep=o.all?base:base.filter(x=>!heard.has(x.id)&&!isChanHidden(x));keep.next=j.nextPageToken||null;
@@ -1061,7 +1065,7 @@ function resCard(v,n){
   d.onclick=()=>{addItem(v,{playNow:true});closeViews()};
   const isHeard=heard.has(v.id);if(isHeard)d.classList.add('heard');
   const th=document.createElement('div');th.className='th';th.style.backgroundImage=`url(https://i.ytimg.com/vi/${v.id}/mqdefault.jpg)`;
-  if(v.dur){const s=document.createElement('span');s.textContent=v.dur;th.appendChild(s)}
+  if(v.live){const s=document.createElement('span');s.className='lv';s.textContent='🔴 DIRECT';th.appendChild(s)}else if(v.dur){const s=document.createElement('span');s.textContent=v.dur;th.appendChild(s)}
   const tx=document.createElement('div');tx.className='tx';
   const tt=document.createElement('div');tt.className='tt';tt.textContent=(n?n+'. ':'')+v.title;
   const ch=document.createElement('div');ch.className='ch';ch.textContent=[v.chT||'',isHeard?'déjà écoutée':''].filter(Boolean).join(' · ');
@@ -1720,6 +1724,7 @@ async function uiFeed(force){
     p.items.filter(x=>!heard.has(x.id)&&!hiddenByRule(x,rule)).slice(0,4).forEach(x=>{if(!x.chT)x.chT=c.name;all.push(x)})}catch(e){}}));
   all.sort((a,b)=>String(b.pub||'').localeCompare(String(a.pub||'')));
   const seen=new Set();const items=all.filter(x=>!seen.has(x.id)&&seen.add(x.id)).slice(0,14);
+  try{const j=await yapi('/videos',{part:'snippet',id:items.map(x=>x.id).join(',')});const lv={};(j.items||[]).forEach(v=>{lv[v.id]=v.snippet&&v.snippet.liveBroadcastContent==='live'});items.forEach(x=>{x.live=!!lv[x.id]});items.sort((a,b)=>(b.live?1:0)-(a.live?1:0))}catch(e){}
   if(items.length)try{localStorage.setItem(LS_FEED,JSON.stringify({key,at:Date.now(),items}))}catch(e){}
   drawFeed(items);
 }
@@ -1729,7 +1734,7 @@ function drawFeed(items){
   items.forEach(v=>{
     const b=document.createElement('div');b.className='fc';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label',v.title);
     const th=document.createElement('div');th.className='fth';th.style.backgroundImage=`url(${thumb(v.id)})`;
-    if(v.pub&&Date.now()-new Date(v.pub)<3*864e5){const n=document.createElement('span');n.className='new';n.textContent='NOUVEAU';th.appendChild(n)}
+    if(v.live){const n=document.createElement('span');n.className='new lvb';n.textContent='🔴 DIRECT';th.appendChild(n)}else if(v.pub&&Date.now()-new Date(v.pub)<3*864e5){const n=document.createElement('span');n.className='new';n.textContent='NOUVEAU';th.appendChild(n)}
     const add=document.createElement('button');add.type='button';add.className='fadd';add.setAttribute('aria-label','Ajouter à ma liste');add.innerHTML=svgI('<path d="M12 5v14M5 12h14"/>',false);
     add.onclick=e=>{e.stopPropagation();addItem(v)};th.appendChild(add);
     const mu=document.createElement('button');mu.type='button';mu.className='fmu';mu.setAttribute('aria-label','Écouter en musique (son seul)');mu.textContent='🎵';mu.onclick=e=>{e.stopPropagation();addItem(v,{playNow:true,music:true})};th.appendChild(mu);
