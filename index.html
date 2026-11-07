@@ -548,7 +548,7 @@ main{overflow-x:clip}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 35</div>
+  <div class="lab" id="ver">Version 36</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -927,19 +927,12 @@ function toggle(){
 }
 const LS_W='bg_wasplaying_v1';
 function flagPlaying(v){try{localStorage.setItem(LS_W,v)}catch(e){}}
-/* après un rechargement de Safari : on retente la lecture tout seul ; si iOS refuse, bouton « Reprendre » */
+/* après un rechargement de Safari : on retente la lecture tout seul (sans message) ; si iOS refuse
+   sans toucher, la position est gardée et le prochain appui sur lecture reprend au bon endroit */
 function autoResume(){
   let was='0';try{was=localStorage.getItem(LS_W)||'0'}catch(e){}
   const v=list[idx];if(was!=='1'||!resume||!v||resume.id!==v.id)return;
-  const saved={id:resume.id,t:resume.t};
-  setTimeout(()=>{
-    play();
-    setTimeout(()=>{
-      if(playing)return;
-      const mm=Math.floor(saved.t/60),ss=String(saved.t%60).padStart(2,'0');
-      toast('Safari a rechargé la page. Reprendre à '+mm+':'+ss+' ?','▶ Reprendre',()=>{resume={id:saved.id,t:saved.t};play()});
-    },4500);
-  },700);
+  setTimeout(()=>{play()},700);
 }
 function setPlaying(p){if(p)flagPlaying('1');else if(userPaused)flagPlaying('0');playing=p;$('#pp').innerHTML=p?ICON_PAUSE:ICON_PLAY;document.body.classList.toggle('playing',p);
   if('mediaSession' in navigator)navigator.mediaSession.playbackState=p?'playing':'paused'}
