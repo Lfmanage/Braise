@@ -350,6 +350,24 @@ main{padding-bottom:calc(120px + var(--safeB))}
 .qi img{width:80px;height:45px}.qi .qn{font-size:12.5px}
 #toast{bottom:calc(112px + var(--safeB));font-size:12.5px}
 
+/* réglages : tient sur 2 pages */
+.tg>.knob{flex:none}
+.tg{padding:7px 12px;gap:8px}
+.tg>span:first-child{line-height:1.25}
+.tg small{font-size:10.5px}
+.big.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.big.g2 button{min-height:36px;font-size:12px}
+.set .big{margin:6px 0}
+.set .qrow{margin:2px 0 6px}
+#ver{margin:6px 0}
+details.steps{margin-top:8px;padding:0}
+details.steps summary{padding:10px 12px;font-weight:650;font-size:12px;color:var(--txt);list-style:none;cursor:pointer}
+details.steps summary::-webkit-details-marker{display:none}
+details.steps[open]{padding-bottom:10px}
+details.steps[open] summary{padding-bottom:6px}
+details.steps{font-size:11.5px}
+details.steps>*:not(summary){padding:0 12px}
+
 </style>
 </head>
 <body>
@@ -507,22 +525,21 @@ main{padding-bottom:calc(120px + var(--safeB))}
 <section class="view set" id="vSet" aria-label="Réglages"><div class="in">
   <div class="vh"><button type="button" class="back" data-close aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1>Réglages</h1></div>
   <div class="opts" style="margin:4px 0 8px">
-  <label class="tg"><span>Mode audio<small>Lecteur iPhone, continue écran verrouillé</small></span><input type="checkbox" class="sw" id="audioMode" checked><span class="knob"></span></label>
+  <label class="tg"><span>Mode audio<small>Continue écran verrouillé</small></span><input type="checkbox" class="sw" id="audioMode" checked><span class="knob"></span></label>
   <label class="tg"><span>Relance auto<small>Retente la lecture si ça coupe</small></span><input type="checkbox" class="sw" id="auto" checked><span class="knob"></span></label>
-  <label class="tg"><span>Suggestions automatiques<small>À la fin, lance une vidéo du même artiste</small></span><input type="checkbox" class="sw" id="autoSug" checked><span class="knob"></span></label>
-  <label class="tg"><span>Crépitement du feu<small>Petit bruit de cheminée en fond</small></span><input type="checkbox" class="sw" id="crackle"><span class="knob"></span></label>
+  <label class="tg"><span>Suggestions auto<small>À la fin, même artiste</small></span><input type="checkbox" class="sw" id="autoSug" checked><span class="knob"></span></label>
+  <label class="tg"><span>Feu de cheminée<small>Bruit de cheminée en fond</small></span><input type="checkbox" class="sw" id="crackle"><span class="knob"></span></label>
+
+  <label class="tg"><span>Lecteur iPhone<small>Plein écran + image dans l'image (rouvre l'appli)</small></span><input type="checkbox" class="sw" id="nativeFs" checked><span class="knob"></span></label>
 </div>
-  <div class="opts" style="margin:0 0 8px"><label class="tg"><span>Lecteur iPhone au lancement<small>Ouvre la vidéo dans le lecteur plein écran d'iPhone (avec image dans l'image). Rouvre l'appli après changement.</small></span><input type="checkbox" class="sw" id="nativeFs" checked><span class="knob"></span></label></div>
-  <label for="kIn">Clé YouTube (gratuite)</label>
+  <div hidden><label for="kIn">Clé YouTube</label>
   <input type="text" id="kIn" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
   <div class="big"><button type="button" class="p" id="kSave">Enregistrer</button><button type="button" id="kTest">Tester</button></div>
   <div class="lab" id="kMsg"></div>
-  <div class="lab" id="hCount"></div><div class="big"><button type="button" id="hClear">Effacer l'historique d'écoute</button></div>
-  <div class="big"><button type="button" id="clearListBtn">Supprimer toute ma liste</button></div>
-  <div class="big"><button type="button" id="undoBtn">Revenir à ma liste d'avant</button></div>
-  <div class="big"><button type="button" id="cleanBtn">Nettoyer ma liste (écoutées et masquées)</button></div>
-  <div class="lab" id="ver">Version 33</div>
-  <div class="steps">La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</div>
+  </div>
+  <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
+  <div class="lab" id="ver">Version 34</div>
+  <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
 <div id="toast" role="status" aria-live="polite"></div>
@@ -1200,10 +1217,10 @@ $('#nxQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
 $('#chNew').onclick=()=>setChanOrder('new');$('#chOld').onclick=()=>setChanOrder('old');$('#chRand').onclick=()=>setChanOrder('rand');
 
 /* réglages : clé YouTube */
-function heardInfo(){$('#hCount').textContent=heard.size+' vidéo'+(heard.size>1?'s':'')+' déjà écoutée'+(heard.size>1?'s':'')+' : elles ne repassent plus toutes seules.';$('#hClear').textContent="Effacer l'historique d'écoute"}
+function heardInfo(){$('#hCount').textContent=heard.size+' vidéo'+(heard.size>1?'s':'')+' déjà écoutée'+(heard.size>1?'s':'')+' : elles ne repassent plus toutes seules.';$('#hClear').textContent="Effacer l'historique"}
 function openSet(){openView('vSet');$('#kIn').value=API_KEY;$('#kMsg').textContent='';heardInfo()}
 $('#hClear').onclick=()=>{const b=$('#hClear');
-  if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Confirmer : tout effacer';setTimeout(()=>{b.dataset.sure='';if(b.textContent.startsWith('Confirmer'))b.textContent="Effacer l'historique d'écoute"},4000);return}
+  if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Confirmer : tout effacer';setTimeout(()=>{b.dataset.sure='';if(b.textContent.startsWith('Confirmer'))b.textContent="Effacer l'historique"},4000);return}
   b.dataset.sure='';heard=new Set();saveHeard();render();heardInfo()};
 $('#kSave').onclick=()=>{API_KEY=$('#kIn').value.trim();try{localStorage.setItem(LS_K,API_KEY)}catch(e){}$('#kMsg').textContent=API_KEY?'Clé enregistrée.':'Clé effacée.'};
 $('#kTest').onclick=async()=>{
@@ -1582,7 +1599,7 @@ function hideChan(id,name){
   toast('Chaîne masquée'+(name?' : '+name:''),'Annuler',()=>{hiddenCh=hiddenCh.filter(h=>h.id!==id);saveHC();favs=pf;chans=pc;saveFC();renderRecent();uiChanUI()});
 }
 function unhideChan(id){hiddenCh=hiddenCh.filter(h=>h.id!==id);saveHC();renderRecent();uiChanUI();toast('Chaîne réaffichée')}
-function uiChanUI(){updateHideChBtn();if($('#vChans').classList.contains('on'))uiChans();const c=$('#feed');if(c&&c.children.length){try{const k=JSON.parse(localStorage.getItem('bg_feed_v1')||'null');if(k)drawFeed(k.items)}catch(e){}}}
+function uiChanUI(){updateHideChBtn();uiHiddenList();if($('#vChans').classList.contains('on'))uiChans();const c=$('#feed');if(c&&c.children.length){try{const k=JSON.parse(localStorage.getItem('bg_feed_v1')||'null');if(k)drawFeed(k.items)}catch(e){}}}
 function updateHideChBtn(){const b=$('#hideChBtn');if(!b)return;const s=nx.favSrc;b.hidden=!s;if(!s)return;
   const h=hiddenCh.some(x=>x.id===s.id);b.textContent=h?'Réafficher':'Masquer';b.setAttribute('aria-pressed',String(h))}
 const _updateFavBtn=updateFavBtn;updateFavBtn=function(){_updateFavBtn();updateHideChBtn()};
@@ -1609,15 +1626,16 @@ function uiChans(){
     b.append(avEl(c.name),n,st,hb);b.onclick=()=>openChannelView(c.id,c.name);box.appendChild(b)});
   uiHiddenList(box);
 }
-function uiHiddenList(box){
-  if(!hiddenCh.length)return;
-  const h=document.createElement('div');h.className='sh';h.style.marginTop='22px';h.innerHTML='<h2>Chaînes masquées</h2>';box.appendChild(h);
-  const p=document.createElement('div');p.className='hint';p.textContent='Leurs vidéos n\'apparaissent plus dans les recherches, les suggestions ni les nouveautés.';box.appendChild(p);
+function uiHiddenList(){
+  const d=$('#hidChans'),box=$('#hidList');if(!d||!box)return;
+  box.textContent='';d.hidden=!hiddenCh.length;if(!hiddenCh.length)return;
+  $('#hidCount').textContent='Chaînes masquées ('+hiddenCh.length+')';
   hiddenCh.forEach(c=>{const r=document.createElement('div');r.className='cr hid';
     const n=document.createElement('span');n.className='cn';n.textContent=c.name||'Chaîne';
     const b=document.createElement('button');b.type='button';b.className='chip';b.textContent='Réafficher';b.onclick=()=>{unhideChan(c.id)};
     r.append(avEl(c.name),n,b);box.appendChild(r)});
 }
+$('#gear').onclick=()=>{openSet();uiHiddenList()};
 $('#allChans').onclick=()=>{uiChans();openView('vChans')};
 
 /* ---- nouveautés de tes chaînes (1 unité de quota par chaîne, gardé 30 min) ---- */
