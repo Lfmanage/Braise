@@ -280,6 +280,12 @@ body.playing #list .it.on .eq i{animation:eq .9s ease-in-out infinite}
 
 body.psheet .mini{display:none}
 
+.chb{display:flex;gap:6px;flex:none}
+.hcb{flex:none;padding:8px 12px;border-radius:999px;background:var(--s2);border:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--mut)}
+.hcb[aria-pressed="true"]{color:var(--txt)}
+.cr.hid{opacity:.75}
+.cr .cs svg{width:18px;height:18px}
+
 </style>
 </head>
 <body>
@@ -421,7 +427,7 @@ body.psheet .mini{display:none}
     <div id="nxRes"></div>
   </div>
   <div id="nxChan" hidden>
-    <div class="chhead"><span id="nxChName"></span><button type="button" id="favBtn" class="favb" aria-pressed="false" hidden>☆ Ajouter aux favoris</button></div>
+    <div class="chhead"><span id="nxChName"></span><span class="chb"><button type="button" id="hideChBtn" class="hcb" aria-pressed="false" hidden>Masquer</button><button type="button" id="favBtn" class="favb" aria-pressed="false" hidden>☆ Ajouter aux favoris</button></span></div>
     <div class="lab" id="hideInfo"></div>
     <div class="big"><button type="button" id="hideBtn" hidden>Masquer une période…</button></div>
     <div id="hideForm" hidden><div class="lab">Du … au … (inclus) :</div><div class="qrow"><input type="date" id="hFrom" aria-label="Du"><input type="date" id="hTo" aria-label="Au"></div><div class="big"><button type="button" class="p" id="hSave">Enregistrer</button><button type="button" id="hOff">Retirer</button></div></div>
@@ -452,7 +458,7 @@ body.psheet .mini{display:none}
   <div class="big"><button type="button" id="clearListBtn">Supprimer toute ma liste</button></div>
   <div class="big"><button type="button" id="undoBtn">Revenir à ma liste d'avant</button></div>
   <div class="big"><button type="button" id="cleanBtn">Nettoyer ma liste (écoutées et masquées)</button></div>
-  <div class="lab" id="ver">Version 31</div>
+  <div class="lab" id="ver">Version 32</div>
   <div class="steps">La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</div>
 </div></section>
 
@@ -553,7 +559,7 @@ async function searchVideos(q,o){
     const base=(j.items||[]).filter(i=>i.id&&i.id.videoId).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),ch:i.snippet.channelId,chT:dec(i.snippet.channelTitle),pub:i.snippet.publishedAt||''}));
     if(base.length){try{const d=await yapi('/videos',{part:'contentDetails',id:base.map(x=>x.id).join(',')});
       const m={};(d.items||[]).forEach(v=>{m[v.id]=isoDur(v.contentDetails&&v.contentDetails.duration)});base.forEach(x=>{x.dur=m[x.id]||''})}catch(e){}}
-    const keep=o.all?base:base.filter(x=>!heard.has(x.id));keep.next=j.nextPageToken||null;
+    const keep=o.all?base:base.filter(x=>!heard.has(x.id)&&!isChanHidden(x));keep.next=j.nextPageToken||null;
     return keep;
   }catch(e){if(API_KEY||e.reason==='quotaExceeded'||e.reason==='dailyLimitExceeded'||e.reason==='rateLimited')throw e;relayErr=e}}
   /* secours sans clé : serveurs Piped publics (peut tomber en panne) */
@@ -562,7 +568,7 @@ async function searchVideos(q,o){
     try{const r=await fetchT(a+'/search?q='+encodeURIComponent(q)+'&filter=videos',7000);if(!r.ok)continue;
       const j=await r.json();
       const out=(j.items||[]).filter(x=>/watch\?v=/.test(x.url||'')).map(x=>({id:x.url.split('v=')[1].slice(0,11),title:x.title||'',chT:x.uploaderName||'',ch:((/\/channel\/(UC[\w-]{22})/.exec(x.uploaderUrl||''))||[])[1]||'',pub:x.uploaded>0?new Date(x.uploaded).toISOString():'',dur:x.duration>0?secDur(x.duration):''}));
-      const keep=o.all?out:out.filter(x=>!heard.has(x.id));if(keep.length)return keep}catch(e){}
+      const keep=o.all?out:out.filter(x=>!heard.has(x.id)&&!isChanHidden(x));if(keep.length)return keep}catch(e){}
   }
   throw Object.assign(new Error('nokey'),{reason:'nokey'});
 }
@@ -769,7 +775,7 @@ let sugBusy=false,sugKey='',sugPool=[];
 let upSug=null; /* suggestion préparée à l'avance : {forId, v} */
 async function findSug(cur){
   const inList=new Set(list.map(x=>x.id));
-  const ok=v=>v.id!==cur.id&&!heard.has(v.id)&&!inList.has(v.id)&&!hiddenByRule(v,hideRule(v.ch,v.chT));
+  const ok=v=>v.id!==cur.id&&!heard.has(v.id)&&!inList.has(v.id)&&!hiddenByRule(v,hideRule(v.ch,v.chT))&&!isChanHidden(v);
   let pick=null;
   /* 1) vidéos de la même chaîne (jusqu'à 200 récentes, tirage au hasard) */
   if(cur.ch){
@@ -1502,8 +1508,31 @@ function uiQueue(){
 $('#upCard').onclick=()=>{const f=UI.first;if(!f)return;if(f.kind==='list'){openPlayer();return}
   if($('#autoSug').checked){prefetchSug(true);toast('Je cherche une autre suite…')}else openPlayer()};
 
+/* ---- chaînes masquées : plus jamais dans les recherches, suggestions, nouveautés ---- */
+const LS_HC='bg_hidech_v1';let hiddenCh=[];
+try{hiddenCh=JSON.parse(localStorage.getItem(LS_HC)||'[]');if(!Array.isArray(hiddenCh))hiddenCh=[]}catch(e){hiddenCh=[]}
+const normN=s=>String(s||'').trim().toLowerCase();
+function isChanHidden(v){if(!v||!hiddenCh.length)return false;return hiddenCh.some(h=>(h.id&&v.ch&&h.id===v.ch)||(h.name&&v.chT&&normN(h.name)===normN(v.chT)))}
+function saveHC(){try{localStorage.setItem(LS_HC,JSON.stringify(hiddenCh))}catch(e){}}
+function saveFC(){try{localStorage.setItem(LS_F,JSON.stringify(favs));localStorage.setItem(LS_C,JSON.stringify(chans))}catch(e){}}
+function hideChan(id,name){
+  if(!id||hiddenCh.some(h=>h.id===id))return;
+  const pf=favs.slice(),pc=chans.slice();
+  hiddenCh.push({id,name:name||''});saveHC();
+  favs=favs.filter(f=>f.id!==id);chans=chans.filter(c=>c.id!==id);saveFC();
+  renderRecent();uiChanUI();
+  toast('Chaîne masquée'+(name?' : '+name:''),'Annuler',()=>{hiddenCh=hiddenCh.filter(h=>h.id!==id);saveHC();favs=pf;chans=pc;saveFC();renderRecent();uiChanUI()});
+}
+function unhideChan(id){hiddenCh=hiddenCh.filter(h=>h.id!==id);saveHC();renderRecent();uiChanUI();toast('Chaîne réaffichée')}
+function uiChanUI(){updateHideChBtn();if($('#vChans').classList.contains('on'))uiChans();const c=$('#feed');if(c&&c.children.length){try{const k=JSON.parse(localStorage.getItem('bg_feed_v1')||'null');if(k)drawFeed(k.items)}catch(e){}}}
+function updateHideChBtn(){const b=$('#hideChBtn');if(!b)return;const s=nx.favSrc;b.hidden=!s;if(!s)return;
+  const h=hiddenCh.some(x=>x.id===s.id);b.textContent=h?'Réafficher':'Masquer';b.setAttribute('aria-pressed',String(h))}
+const _updateFavBtn=updateFavBtn;updateFavBtn=function(){_updateFavBtn();updateHideChBtn()};
+const _touchChan=touchChan;touchChan=function(v){if(isChanHidden(v))return;_touchChan(v)};
+$('#hideChBtn').onclick=()=>{const s=nx.favSrc;if(!s)return;if(hiddenCh.some(x=>x.id===s.id))unhideChan(s.id);else hideChan(s.id,s.name)};
+
 /* ---- chaînes : ronds de l'accueil + écran Chaînes ---- */
-function chanArr(){const a=favs.map(c=>({...c,fav:true}));chans.forEach(c=>{if(c&&c.id&&!isFav(c.id))a.push({...c,fav:false})});return a}
+function chanArr(){const a=favs.filter(c=>!hiddenCh.some(h=>h.id===c.id)).map(c=>({...c,fav:true}));chans.forEach(c=>{if(c&&c.id&&!isFav(c.id)&&!hiddenCh.some(h=>h.id===c.id))a.push({...c,fav:false})});return a}
 function uiStories(){
   const a=chanArr().slice(0,14);const box=$('#stories');box.textContent='';$('#chSec').hidden=!a.length;
   a.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='story'+(c.fav?' fav':'');
@@ -1512,12 +1541,24 @@ function uiStories(){
 }
 function uiChans(){
   const box=$('#chList');box.textContent='';const a=chanArr();
-  if(!a.length){const d=document.createElement('div');d.className='msg';d.textContent='Tes chaînes favorites et celles que tu écoutes apparaîtront ici.';box.appendChild(d);return}
+  if(!a.length){const d=document.createElement('div');d.className='msg';d.textContent='Tes chaînes favorites et celles que tu écoutes apparaîtront ici.';box.appendChild(d);uiHiddenList(box);return}
   a.forEach(c=>{const b=document.createElement('div');b.className='cr';b.setAttribute('role','button');b.tabIndex=0;
     const n=document.createElement('span');n.className='cn';n.textContent=c.name||'Chaîne';const sm=document.createElement('small');sm.textContent=c.fav?'Favorite':'Écoutée récemment';n.appendChild(sm);
     const st=document.createElement('button');st.type='button';st.className='cs'+(c.fav?' on':'');st.textContent=c.fav?'★':'☆';st.setAttribute('aria-label',c.fav?'Retirer des favoris':'Ajouter aux favoris');
     st.onclick=e=>{e.stopPropagation();toggleFav(c.id,c.name);uiChans()};
-    b.append(avEl(c.name),n,st);b.onclick=()=>openChannelView(c.id,c.name);box.appendChild(b)});
+    const hb=document.createElement('button');hb.type='button';hb.className='cs';hb.setAttribute('aria-label','Masquer cette chaîne');hb.innerHTML=svgI('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',false);
+    hb.onclick=e=>{e.stopPropagation();hideChan(c.id,c.name)};
+    b.append(avEl(c.name),n,st,hb);b.onclick=()=>openChannelView(c.id,c.name);box.appendChild(b)});
+  uiHiddenList(box);
+}
+function uiHiddenList(box){
+  if(!hiddenCh.length)return;
+  const h=document.createElement('div');h.className='sh';h.style.marginTop='22px';h.innerHTML='<h2>Chaînes masquées</h2>';box.appendChild(h);
+  const p=document.createElement('div');p.className='hint';p.textContent='Leurs vidéos n\'apparaissent plus dans les recherches, les suggestions ni les nouveautés.';box.appendChild(p);
+  hiddenCh.forEach(c=>{const r=document.createElement('div');r.className='cr hid';
+    const n=document.createElement('span');n.className='cn';n.textContent=c.name||'Chaîne';
+    const b=document.createElement('button');b.type='button';b.className='chip';b.textContent='Réafficher';b.onclick=()=>{unhideChan(c.id)};
+    r.append(avEl(c.name),n,b);box.appendChild(r)});
 }
 $('#allChans').onclick=()=>{uiChans();openView('vChans')};
 
@@ -1540,7 +1581,7 @@ async function uiFeed(force){
   drawFeed(items);
 }
 function drawFeed(items){
-  const box=$('#feed');box.textContent='';items=(items||[]).filter(x=>!heard.has(x.id));
+  const box=$('#feed');box.textContent='';items=(items||[]).filter(x=>!heard.has(x.id)&&!isChanHidden(x));
   $('#feedSec').hidden=!items.length;
   items.forEach(v=>{
     const b=document.createElement('div');b.className='fc';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label',v.title);
