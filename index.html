@@ -594,7 +594,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 44</div>
+  <div class="lab" id="ver">Version 45</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1816,6 +1816,15 @@ setInterval(()=>{
 frame=function(){};
 uiStories();uiCur();uiPlay();uiRate();
 setTimeout(()=>uiFeed(false),1500);
+
+/* ---- serveur audio maison (PC chez soi, via Tailscale) : essayé en premier ---- */
+const HOME_AUDIO='https://lfor.tail8502b5.ts.net:8444';let homeDownUntil=0;
+const _audioUrl0=audioUrl;
+audioUrl=async function(id){
+  if(Date.now()>homeDownUntil){try{const r=await fetchT(HOME_AUDIO+'/ping',3500);if(r.ok)return{url:HOME_AUDIO+'/audio?id='+id}}catch(e){}homeDownUntil=Date.now()+60000}
+  return _audioUrl0(id);
+};
+au.addEventListener('error',()=>{try{if(engine==='audio'&&(au.src||'').indexOf(HOME_AUDIO)===0){homeDownUntil=Date.now()+5*60000;const v=list[idx];toast('Serveur maison : échec, vidéo lancée');au.pause();au.removeAttribute('src');setMode('yt');if(v&&ytReady)ytLoad(v.id,0)}}catch(e){}});
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
