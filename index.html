@@ -627,6 +627,10 @@ body.native #stage .ph span{display:none}
 body.native.watch #stage::after{content:"▶";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:32px;background:rgba(0,0,0,.55);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;padding-left:4px;box-sizing:border-box}
 body.native.playing.watch #stage::after{content:"⧉";font-size:24px;padding:0}
 
+/* v56 : message en bas lisible en mode clair */
+#toast{background:#212121!important;color:#fff!important}#toast span,#toast div{color:#fff}
+#toast button{color:#ff8a65!important}
+
 </style>
 </head>
 <body>
@@ -807,7 +811,7 @@ body.native.playing.watch #stage::after{content:"⧉";font-size:24px;padding:0}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 55</div>
+  <div class="lab" id="ver">Version 56</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1893,7 +1897,7 @@ const _touchChan=touchChan;touchChan=function(v){if(isChanHidden(v))return;_touc
 $('#hideChBtn').onclick=()=>{const s=nx.favSrc;if(!s)return;if(hiddenCh.some(x=>x.id===s.id))unhideChan(s.id);else hideChan(s.id,s.name)};
 
 /* ---- chaînes : ronds de l'accueil + écran Chaînes ---- */
-function chanArr(){const a=favs.filter(c=>!hiddenCh.some(h=>h.id===c.id)).map(c=>({...c,fav:true}));chans.forEach(c=>{if(c&&c.id&&!isFav(c.id)&&!hiddenCh.some(h=>h.id===c.id))a.push({...c,fav:false})});return a}
+function chanArr(){return favs.filter(c=>!hiddenCh.some(h=>h.id===c.id)).map(c=>({...c,fav:true}))} /* v56 : seulement les chaînes que TU as mises en favori */
 function uiStories(){
   const a=chanArr().slice(0,14);const box=$('#stories');box.textContent='';$('#chSec').hidden=!a.length;
   a.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='story'+(c.fav?' fav':'');
@@ -1902,7 +1906,7 @@ function uiStories(){
 }
 function uiChans(){
   const box=$('#chList');box.textContent='';const a=chanArr();
-  if(!a.length){const d=document.createElement('div');d.className='msg';d.textContent='Tes chaînes favorites et celles que tu écoutes apparaîtront ici.';box.appendChild(d);uiHiddenList(box);return}
+  if(!a.length){const d=document.createElement('div');d.className='msg';d.textContent='Aucune chaîne en favori. Sur la page d\'une vidéo, touche ☆ Favori pour ajouter sa chaîne ici.';box.appendChild(d);uiHiddenList(box);return}
   a.forEach(c=>{const b=document.createElement('div');b.className='cr';b.setAttribute('role','button');b.tabIndex=0;
     const n=document.createElement('span');n.className='cn';n.textContent=c.name||'Chaîne';const sm=document.createElement('small');sm.textContent=c.fav?'Favorite':'Écoutée récemment';n.appendChild(sm);
     const st=document.createElement('button');st.type='button';st.className='cs'+(c.fav?' on':'');st.textContent=c.fav?'★':'☆';st.setAttribute('aria-label',c.fav?'Retirer des favoris':'Ajouter aux favoris');
@@ -2318,7 +2322,7 @@ const GENERIC=/^(video|vidéo|histoire|histoires|story|storytime|youtube|france|
 function pickTags(tags){return (tags||[]).map(t=>String(t).trim()).filter(t=>t.length>=3&&t.length<=40&&!GENERIC.test(t)).slice(0,2).join(' ')}
 sgFetch=async function(cur){
   const K='v2:'+cur.id;const c=SG.cache[K];if(c&&Date.now()-c.at<12*3600e3&&c.items&&c.items.length)return c.items;
-  let tags=[];try{const j=await yapi('/videos',{part:'snippet',id:cur.id});const s=j.items&&j.items[0]&&j.items[0].snippet;if(s){tags=s.tags||[];if(!cur.ch&&s.channelId){cur.ch=s.channelId;cur.chT=dec(s.channelTitle||'')}}}catch(e){}
+  let tags=[];try{const j=await yapi('/videos',{part:'snippet',id:cur.id});const s=j.items&&j.items[0]&&j.items[0].snippet;if(s){tags=s.tags||[];SG.tags=SG.tags||{};SG.tags[cur.id]=tags.slice(0,12);if(!cur.ch&&s.channelId){cur.ch=s.channelId;cur.chT=dec(s.channelTitle||'')}}}catch(e){}
   const tq=pickTags(tags);const q1=sgQuery(cur);
   const [byTag,byC]=await Promise.all([tq?searchVideos(tq,{max:25,all:true}).catch(()=>[]):Promise.resolve([]),cur.ch?channelPage(cur.ch,null).then(r=>r.items).catch(()=>[]):Promise.resolve([])]);
   let byT=[];if(byTag.length<12&&q1)byT=await searchVideos(q1,{max:25,all:true}).catch(()=>[]);
@@ -2347,6 +2351,62 @@ const _resCard54=resCard;resCard=function(v,n){const d=_resCard54(v,n);if(/^[\w-
 /* v55 : avec le lecteur iPhone, la vidéo est déjà dans la fenêtre flottante : en haut de la page on montre l'image (plus de grand rectangle noir) */
 const _stageState55=stageState;stageState=function(){document.body.classList.toggle('native',nativeFs());_stageState55()};
 document.body.classList.toggle('native',nativeFs());
+
+/* ================= v56 : accueil = uniquement ce que tu regardes vraiment =================
+   Une chaîne ou un « style » (mot-clé de vidéo) n'entre dans l'accueil qu'après 3 vidéos différentes regardées (20 s minimum). */
+SG.tags=SG.tags||{};
+let tagPlays={};try{tagPlays=JSON.parse(localStorage.getItem('bg_tagplays_v1')||'{}')||{}}catch(e){tagPlays={}}
+async function tagsOf(id){if(SG.tags[id])return SG.tags[id];try{const j=await yapi('/videos',{part:'snippet',id});const s=j.items&&j.items[0]&&j.items[0].snippet;SG.tags[id]=((s&&s.tags)||[]).slice(0,12)}catch(e){SG.tags[id]=[]}return SG.tags[id]}
+const _tagSeen=new Set();
+setInterval(async()=>{const c=list[idx];if(!c||!playing||_tagSeen.has(c.id))return;const[t]=ptime();if(t<20)return;_tagSeen.add(c.id);
+  const tags=(await tagsOf(c.id)).map(x=>String(x).trim()).filter(x=>x.length>=3&&x.length<=40&&!GENERIC.test(x));
+  tags.forEach(x=>{const k=x.toLowerCase();const e=tagPlays[k]||(tagPlays[k]={t:x,ids:[]});if(!e.ids.includes(c.id)){e.ids.push(c.id);if(e.ids.length>30)e.ids.shift()}e.at=Date.now()});
+  const ks=Object.keys(tagPlays);if(ks.length>400)ks.sort((a,b)=>(tagPlays[a].at||0)-(tagPlays[b].at||0)).slice(0,ks.length-400).forEach(k=>delete tagPlays[k]);
+  try{localStorage.setItem('bg_tagplays_v1',JSON.stringify(tagPlays))}catch(e){}},5000);
+function habitualStyles(){return Object.values(tagPlays).filter(e=>e.ids.length>=3).sort((a,b)=>b.ids.length-a.ids.length||(b.at||0)-(a.at||0)).map(e=>e.t)}
+let HOME={at:0,items:[],busy:false};
+try{const h=JSON.parse(localStorage.getItem('bg_home_v1')||'null');if(h&&h.items)HOME=Object.assign(HOME,h)}catch(e){}
+async function buildHome(force){
+  if(HOME.busy)return;if(!force&&HOME.items.length&&Date.now()-HOME.at<3*3600e3)return;HOME.busy=true;
+  try{
+    const styles=habitualStyles().slice(0,3);const S=[];
+    for(const st of styles){try{(await searchVideos(st,{max:20,all:true})).forEach(v=>{v._st=st;S.push(v)})}catch(e){}}
+    let H=[];try{H=await habitualVideos({ch:''})}catch(e){}
+    const out=[];const seen=new Set();let i=0,j=0;
+    while(i<S.length||j<H.length){for(let k=0;k<2&&i<S.length;k++){const v=S[i++];if(!seen.has(v.id)){seen.add(v.id);out.push(v)}}if(j<H.length){const v=H[j++];if(!seen.has(v.id)){seen.add(v.id);out.push(v)}}}
+    HOME={at:Date.now(),items:out.slice(0,80),busy:false};try{localStorage.setItem('bg_home_v1',JSON.stringify({at:HOME.at,items:HOME.items}))}catch(e){}
+  }finally{HOME.busy=false}
+  drawSugs();
+}
+(function(){const h=document.querySelectorAll('.hchips button');const L=[['home','Tout'],['list','Vidéo en cours'],['chans','Mes chaînes'],['live','🔴 Directs']];h.forEach((b,i)=>{if(L[i]){b.dataset.c=L[i][0];b.textContent=L[i][1]}})})();
+drawSugs=function(){
+  const box=$('#homeSug');box.textContent='';const inList=new Set(list.map(x=>x.id));const seen=new Set();const cur=list[idx];
+  const ok=v=>v&&/^[\w-]{11}$/.test(v.id)&&!heard.has(v.id)&&!inList.has(v.id)&&(!cur||v.id!==cur.id)&&!isChanHidden(v)&&!(durS(v.dur)&&durS(v.dur)<70)&&!seen.has(v.id)&&seen.add(v.id);
+  let out=[];
+  if(HCHIP==='sug')out=SG.all.filter(ok);
+  else if(HCHIP==='chans')out=FEED49.filter(ok);
+  else if(HCHIP==='live')out=HOME.items.concat(SG.all,FEED49).filter(v=>v&&v.live).filter(ok);
+  else out=HOME.items.filter(ok);
+  $('#sugSec').hidden=false;
+  if(!out.length){const e=document.createElement('div');e.className='hempty';
+    e.textContent=HCHIP==='all'?(habitualStyles().length||habitualChans().length?'Je prépare tes vidéos…':'Ici n\'apparaîtront que les vidéos du genre que tu regardes vraiment : dès que tu auras regardé 3 vidéos d\'une même chaîne ou d\'un même style, je te proposerai la suite ici.'):HCHIP==='live'?'Aucun direct en cours.':HCHIP==='chans'?'Ajoute des chaînes en favori (☆ Favori) pour voir leurs nouveautés ici.':'Lance une vidéo pour voir des vidéos proches.';
+    box.appendChild(e);$('#sugReload').hidden=true;return}
+  $('#sugReload').hidden=false;
+  const nn=nothingNext();out.slice(0,SG.n||10).forEach((v,k)=>box.appendChild(sgRow(v,HCHIP==='sug'&&k===0&&nn)));
+  $('#sugReload').textContent=(SG.n||10)<out.length?'Voir plus':'Actualiser';
+  if(document.body.classList.contains('watch'))uiWatch();
+};
+$('#sugReload').onclick=()=>{const n=SG.n||10;SG.n=n+10;if(HCHIP==='all'&&SG.n>HOME.items.length){SG.n=10;buildHome(true)}else if(HCHIP==='sug'&&SG.n>SG.all.length)sgMore();else drawSugs()};
+setTimeout(()=>buildHome(false),1500);setInterval(()=>buildHome(false),15*60e3);
+/* v56 : après une fermeture ou un rechargement, la vidéo en cours revient tout en haut de l'accueil */
+const _drawSugs56=drawSugs;drawSugs=function(){_drawSugs56();
+  const c=list[idx];if(!c||playing||HCHIP!=='all')return;const box=$('#homeSug');
+  const e=box.querySelector('.hempty');if(e)e.remove();$('#sugSec').hidden=false;
+  const d=sgRow(c,false);d.classList.add('resume');const p=posMap[c.id];
+  const sm=d.querySelector('small');sm.textContent='';const b=document.createElement('b');b.textContent=(p>3?'Reprendre à '+secDur(p):'À regarder')+' · ';sm.append(b,document.createTextNode(c.chT||''));
+  box.prepend(d);
+};
+setTimeout(()=>{try{drawSugs()}catch(e){}},400);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
