@@ -617,6 +617,9 @@ body.dragging #vPlayer{transition:none}
 #vPlayer.view{transform:translateY(40px)}
 #vPlayer.view.on{transform:none}
 
+/* v52 : lecteur iPhone par défaut, le bouton ⧉ n'est plus utile */
+#pFloat{display:none!important}
+
 </style>
 </head>
 <body>
@@ -797,7 +800,7 @@ body.dragging #vPlayer{transition:none}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 51</div>
+  <div class="lab" id="ver">Version 52</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1227,7 +1230,7 @@ function flushPos(){const cv=list[idx];if(!cv)return;try{const t=engine==='audio
 
 /* lecteur iPhone : sans « playsinline », iOS ouvre la vidéo dans son lecteur plein écran (avec image dans l'image) */
 const LS_N='bg_native_v1';
-function nativeFs(){try{return localStorage.getItem(LS_N)==='1'}catch(e){return false}} /* v51 : vidéo dans l'appli (fluide comme YouTube) ; bouton ⧉ pour le lecteur iPhone flottant */
+function nativeFs(){try{return localStorage.getItem(LS_N)!=='0'}catch(e){return true}} /* v52 : lecteur iPhone (démarre tout de suite, flotte en glissant vers le haut ou en quittant Safari) */
 window.onYouTubeIframeAPIReady=()=>{makeYt();ytTick()};
 function makeYt(){
   yt=new YT.Player('player',{host:'https://www.youtube-nocookie.com',playerVars:{playsinline:nativeFs()?0:1,rel:0},
@@ -2230,7 +2233,7 @@ document.addEventListener('visibilitychange',()=>{
 let _pf49='';setInterval(()=>{const c=list[idx];if(engine==='yt'&&playing&&c&&c.id!==_pf49&&Date.now()>homeDownUntil){_pf49=c.id;fetch(HOME_AUDIO+'/prefetch?id='+c.id,{mode:'cors'}).catch(()=>{})}},4000);
 setInterval(stageState,700);stageState();
 /* v48 : passage unique à la vidéo dans l'appli (comme YouTube) ; l'ancien lecteur iPhone reste disponible dans les réglages */
-try{if(!localStorage.getItem('bg_v51mig')){localStorage.setItem(LS_N,'0');localStorage.setItem('bg_v51mig','1');const n=$('#nativeFs');if(n)n.checked=false}}catch(e){}
+try{if(!localStorage.getItem('bg_v52mig')){localStorage.setItem(LS_N,'1');localStorage.setItem('bg_v52mig','1');const n=$('#nativeFs');if(n)n.checked=true}}catch(e){}
 
 /* ================= v49 ================= */
 /* barre de progression rouge sur les vignettes + reprise là où tu t'étais arrêté */
