@@ -811,7 +811,7 @@ body.native.playing.watch #stage::after{content:"⧉";font-size:24px;padding:0}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 56</div>
+  <div class="lab" id="ver">Version 57</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -2407,6 +2407,79 @@ const _drawSugs56=drawSugs;drawSugs=function(){_drawSugs56();
   box.prepend(d);
 };
 setTimeout(()=>{try{drawSugs()}catch(e){}},400);
+
+/* ================= v57 : suggestions STRICTES =================
+   Uniquement : (1) la même personne / la même chaîne que la vidéo en cours, (2) les vidéos de tes chaînes favorites.
+   Rien tant que tu n'as regardé aucune vidéo. */
+const FAVV={};
+async function favVideos(exceptCh){
+  const out=[];await Promise.all(favs.filter(c=>c&&c.id&&c.id!==exceptCh&&!hiddenCh.some(h=>h.id===c.id)).slice(0,8).map(async c=>{
+    try{let h=FAVV[c.id];if(!h||Date.now()-h.at>2*3600e3){const r=await channelPage(c.id,null);h=FAVV[c.id]={at:Date.now(),items:r.items.slice(0,20)}}
+      h.items.forEach(v=>{if(!v.chT)v.chT=c.name;out.push(v)})}catch(e){}}));
+  out.sort((a,b)=>String(b.pub||'').localeCompare(String(a.pub||'')));return out;
+}
+function personOf(tags,cur){
+  /* le mot-clé « personne » : un mot-clé de la vidéo qu'on retrouve dans son titre ou sa chaîne, sinon le 1er mot-clé précis */
+  const t=(tags||[]).map(x=>String(x).trim()).filter(x=>x.length>=3&&x.length<=40&&!GENERIC.test(x));
+  const tt=normT(cur.title+' '+(cur.chT||''));
+  return t.find(x=>tt.includes(normT(x)))||t.find(x=>x.includes(' '))||t[0]||'';
+}
+sgFetch=async function(cur){
+  const K='v3:'+cur.id;const c=SG.cache[K];if(c&&Date.now()-c.at<12*3600e3&&c.items)return c.items;
+  let tags=SG.tags&&SG.tags[cur.id];
+  if(!tags){try{const j=await yapi('/videos',{part:'snippet',id:cur.id});const s=j.items&&j.items[0]&&j.items[0].snippet;tags=(s&&s.tags)||[];SG.tags[cur.id]=tags.slice(0,12);if(s&&!cur.ch&&s.channelId){cur.ch=s.channelId;cur.chT=dec(s.channelTitle||'')}}catch(e){tags=[]}}
+  const who=personOf(tags,cur);const wn=normT(who);
+  const [byP,byC]=await Promise.all([who?searchVideos(who,{max:25,all:true}).catch(()=>[]):Promise.resolve([]),cur.ch?channelPage(cur.ch,null).then(r=>r.items).catch(()=>[]):Promise.resolve([])]);
+  /* strict : on ne garde de la recherche que ce qui parle vraiment de cette personne (dans le titre ou le nom de la chaîne) */
+  const P=byP.filter(v=>v.ch===cur.ch||(wn&&(normT(v.title).includes(wn)||normT(v.chT).includes(wn))));
+  const pool=[];byC.slice(0,30).forEach((v,r)=>pool.push(Object.assign({},v,{_b:100-r*1.2,_s:1})));P.forEach((v,r)=>pool.push(Object.assign({},v,{_b:95-r*1.5,_s:0})));
+  SG.cache[K]={at:Date.now(),items:pool};sgSave();return pool;
+};
+getSugs=async function(cur,force){
+  if(!cur)return[];if(force)delete SG.cache['v3:'+cur.id];
+  const R=sgRank(cur,await sgFetch(cur));
+  let F=[];try{const ids=new Set(R.map(v=>v.id));const inList=new Set(list.map(x=>x.id));
+    F=(await favVideos(cur.ch)).filter(v=>v&&v.id!==cur.id&&!ids.has(v.id)&&!heard.has(v.id)&&!inList.has(v.id)&&!isChanHidden(v))}catch(e){}
+  /* 3 de la même personne, puis 1 de tes favoris */
+  const out=[];let i=0,j=0;while(i<R.length||j<F.length){for(let k=0;k<3&&i<R.length;k++)out.push(R[i++]);if(j<F.length){const v=F[j++];v._fav=1;out.push(v)}}
+  return out;
+};
+findSug=async function(cur){const s=await getSugs(cur);return s.find(v=>!v._fav)||s[0]||null};
+/* sgRank ne doit plus limiter la même chaîne (c'est justement ce qu'on veut) */
+const _sgRank57=sgRank;sgRank=function(cur,items){
+  const inList=new Set(list.map(x=>x.id));const curN=normT(cur.title);const seen=new Set();
+  return items.filter(v=>v&&/^[\w-]{11}$/.test(v.id||'')&&v.id!==cur.id&&!heard.has(v.id)&&!inList.has(v.id)&&!isChanHidden(v)&&!(v.live&&!cur.live)&&!(durS(v.dur)&&durS(v.dur)<70)&&normT(v.title)!==curN&&!seen.has(v.id)&&seen.add(v.id))
+    .sort((a,b)=>(b._b||0)-(a._b||0));
+};
+/* accueil : rien avant la 1re vidéo ; ensuite = suggestions strictes de la vidéo en cours (ou la dernière) */
+let FAVONLY=[];
+async function refreshFavOnly(){try{FAVONLY=await favVideos('')}catch(e){FAVONLY=[]}drawSugs()}
+(function(){const h=document.querySelectorAll('.hchips button');const L=[['home','Tout'],['chans','Mes favoris'],['live','🔴 Directs']];h.forEach((b,i)=>{if(L[i]){b.dataset.c=L[i][0];b.textContent=L[i][1];b.hidden=false}else b.hidden=true})})();
+const _drawSugs57base=_drawSugs56;
+drawSugs=function(){
+  const box=$('#homeSug');box.textContent='';const inList=new Set(list.map(x=>x.id));const seen=new Set();const cur=list[idx];
+  const ok=v=>v&&/^[\w-]{11}$/.test(v.id)&&!heard.has(v.id)&&!inList.has(v.id)&&(!cur||v.id!==cur.id)&&!isChanHidden(v)&&!seen.has(v.id)&&seen.add(v.id);
+  let out=[];
+  if(HCHIP==='chans')out=(FEED49.length?FEED49:FAVONLY).filter(ok);
+  else if(HCHIP==='live')out=SG.all.concat(FAVONLY).filter(v=>v&&v.live).filter(ok);
+  else out=(cur&&SG.forId===cur.id?SG.all:FAVONLY).filter(ok);
+  $('#sugSec').hidden=false;
+  const resume=cur&&!playing&&HCHIP==='all';
+  if(!out.length&&!resume){
+    if(!cur&&!favs.length){$('#sugSec').hidden=true;$('#sugReload').hidden=true;return}
+    const e=document.createElement('div');e.className='hempty';e.textContent=HCHIP==='chans'?'Ajoute des chaînes en favori (☆ Favori) pour voir leurs vidéos ici.':HCHIP==='live'?'Aucun direct en cours.':'Je prépare tes suggestions…';box.appendChild(e);$('#sugReload').hidden=true;return}
+  $('#sugReload').hidden=out.length<=(SG.n||10);
+  const nn=nothingNext();out.slice(0,SG.n||10).forEach((v,k)=>box.appendChild(sgRow(v,HCHIP==='all'&&k===0&&nn&&!v._fav)));
+  $('#sugReload').textContent='Voir plus';
+  if(resume){const d=sgRow(cur,false);d.classList.add('resume');const p=posMap[cur.id];const sm=d.querySelector('small');sm.textContent='';const b=document.createElement('b');b.textContent=(p>3?'Reprendre à '+secDur(p):'À regarder')+' · ';sm.append(b,document.createTextNode(cur.chT||''));box.prepend(d)}
+  if(document.body.classList.contains('watch'))uiWatch();
+};
+$('#sugReload').onclick=()=>{SG.n=(SG.n||10)+10;drawSugs()};
+buildHome=async function(){};
+setTimeout(refreshFavOnly,1500);
+const _toggleFav57=toggleFav;toggleFav=function(id,name){_toggleFav57(id,name);delete FAVV[id];SG.forId=null;refreshFavOnly();try{uiSugs()}catch(e){}};
+/* empty state de l'accueil : section cachée tant qu'il n'y a rien */
+setTimeout(()=>{try{drawSugs()}catch(e){}},500);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
