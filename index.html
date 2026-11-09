@@ -427,7 +427,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
 .res .th span.lv{font-size:10px}
 
 /* v47 : accueil immersif */
-header.top,.greet,#feedSec{display:none!important}
+.greet,#feedSec{display:none!important}
 .hero{margin:0 -16px;border:0;border-radius:0;background:transparent;box-shadow:none;position:relative;overflow:visible}
 .hero .frame{position:relative}
 .hero .frame::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(180deg,rgba(9,9,12,0),var(--bg));pointer-events:none;z-index:2}
@@ -461,6 +461,140 @@ header.top,.greet,#feedSec{display:none!important}
 .sgr.sk{height:57px;border-radius:10px;background:linear-gradient(90deg,var(--s2),var(--s3),var(--s2));background-size:200% 100%;animation:sk 1.2s linear infinite;margin-bottom:6px}
 @keyframes sk{to{background-position:-200% 0}}
 
+/* v48 : accueil façon YouTube (aéré) */
+.glow{display:none}
+main{padding-top:calc(4px + env(safe-area-inset-top,0px))}
+header.top{height:46px;margin-bottom:2px}
+.brand h1{font-size:21px}
+.hbtns{gap:6px}
+.hbtns .ib{width:38px;height:38px;border-radius:19px;background:transparent;border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.hbtns .ib svg{width:21px;height:21px}
+.hchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 12px}
+.hchips::-webkit-scrollbar{display:none}
+.hchips button{flex:none;padding:7px 12px;border-radius:9px;background:rgba(255,255,255,.1);font-size:13.5px;font-weight:600;color:var(--txt)}
+.hchips button.on{background:#f1f1f1;color:#0f0f0f}
+.hero{margin:0 -16px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.hero .frame::after{display:none}
+.hero #stage{aspect-ratio:16/9;background:#111}
+.hero #stage .ph.img:after{display:none}
+#mode{top:10px}
+.hero .frame #bar{position:absolute;left:0;right:0;bottom:0;margin:0;height:3px;border-radius:0;background:rgba(255,255,255,.25);z-index:3}
+.hero .frame #bar div{border-radius:0;background:#ff5a36}
+.hinfo{display:flex;align-items:flex-start;gap:12px;padding:12px 16px 0;margin:0}
+.hav{width:36px;height:36px;border-radius:18px;flex:none;background:linear-gradient(135deg,#ffb347,#ff5a36,#ff2d87);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
+.hcol{flex:1;min-width:0}
+.htext{gap:3px;width:100%}
+#now{font:600 15px/1.3 var(--font);letter-spacing:0;-webkit-line-clamp:2}
+.hmeta{display:flex;gap:6px;align-items:baseline;min-width:0;font-size:12.5px;color:var(--mut)}
+#heroCh{font-size:12.5px;color:var(--mut);flex:0 1 auto}
+.hmeta small#heroLab{font-size:12.5px;font-weight:500;letter-spacing:0;color:var(--mut);text-transform:none;white-space:nowrap}
+.hmeta small#heroLab:before{content:"· "}
+#heroCh:empty+small:before{content:""}
+.hact{display:flex;gap:8px;padding:9px 0 0}
+.hact #heroPlay{flex:none;width:auto;height:32px;padding:0 13px;border-radius:16px;background:#ff5a36;color:#fff;font:650 13px/1 var(--font);gap:6px;box-shadow:none}
+.hact #heroPlay svg{width:13px;height:13px;fill:#fff}
+.hmu{width:auto;height:32px;padding:0 12px;border-radius:16px;background:rgba(255,255,255,.1);font:600 13px/1 var(--font);color:var(--txt)}
+#sugSec{margin:18px -16px 0}
+.sgr{display:block;padding:0;min-height:0;margin-bottom:18px;position:relative}
+.sgr .sgi{position:relative;width:100%;aspect-ratio:16/9;background:#1a1a1a;overflow:hidden}
+.sgr .sgi img{position:absolute;inset:0;width:100%;height:100%;border-radius:0;object-fit:cover}
+.sgr .sgd{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.78);color:#fff;font-size:12px;font-weight:600;padding:2px 5px;border-radius:5px}
+.sgr .sgd.lv{background:#e5322d}
+.sgr .sgm{display:flex;gap:12px;padding:10px 6px 0 16px;align-items:flex-start}
+.sgr .sav{width:36px;height:36px;border-radius:18px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
+.sgt{flex:1;min-width:0}
+.sgn{font-size:15px;font-weight:600;line-height:1.3}
+.sgr small{font-size:12.5px;color:var(--mut);margin-top:3px}
+.sgr.first small{color:var(--mut)}
+.sgr small b{color:var(--accT);font-weight:650}
+.sgr .mu,.sgr .ad{display:none}
+.sgr .dots{width:36px;height:36px;flex:none;font-size:20px;color:var(--mut);display:flex;align-items:center;justify-content:center;background:none}
+.sgr.sk{height:300px;margin:0 0 18px;border-radius:0}
+#sugReload{display:block;margin:4px 16px 8px;width:calc(100% - 32px);height:42px;border-radius:21px;background:rgba(255,255,255,.1);font-weight:650;font-size:14px;color:var(--txt)}
+body.heroVis:not(.inview) #mini{display:none!important}
+#acts{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);display:flex;align-items:flex-end}
+#acts[hidden]{display:none}
+#acts .ac2{width:100%;background:#212121;border-radius:16px 16px 0 0;padding:8px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+#acts .ac2 b{display:block;font-size:13px;color:var(--mut);font-weight:600;padding:10px 20px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#acts .ac2 button{display:block;width:100%;text-align:left;padding:14px 20px;font-size:15.5px;color:var(--txt);background:none}
+
+
+/* ===== v48b : Braise façon YouTube ===== */
+:root{--bg:#0f0f0f;--s1:#212121;--s2:rgba(255,255,255,.1);--s3:rgba(255,255,255,.15);--line:rgba(255,255,255,.1);--txt:#f1f1f1;--mut:#aaaaaa;--chipOn:#f1f1f1;--chipOnT:#0f0f0f;--bar:#0f0f0f;--sheet:#212121}
+@media (prefers-color-scheme: light){:root{--bg:#ffffff;--s1:#f2f2f2;--s2:rgba(0,0,0,.05);--s3:rgba(0,0,0,.1);--line:rgba(0,0,0,.1);--txt:#0f0f0f;--mut:#606060;--chipOn:#0f0f0f;--chipOnT:#ffffff;--bar:#ffffff;--sheet:#ffffff;--accT:#cc3a1a}
+  html,body{background:#fff}
+  .hbtns .ib,.tabbar button,.tabbar button[aria-current="page"]{color:var(--txt)}
+  .ib{background:var(--s2);border-color:var(--line);color:var(--txt)}
+  #acts .ac2{box-shadow:0 -4px 24px rgba(0,0,0,.15)}
+}
+html,body{background:var(--bg)}
+.hero,.greet,#feedSec,#upCard,#chSec{display:none!important}
+.hchips button{background:var(--s2);color:var(--txt)}
+.hchips button.on{background:var(--chipOn);color:var(--chipOnT)}
+#sugSec{margin-top:4px}
+.hempty{color:var(--mut);font-size:14px;text-align:center;padding:60px 30px}
+/* barre du bas (4 onglets, comme YouTube) */
+.tabbar{background:var(--bar);border-top:1px solid var(--line);-webkit-backdrop-filter:none;backdrop-filter:none;padding:4px 4px var(--safeB);height:calc(54px + var(--safeB));box-shadow:none}
+.tabbar button{min-height:48px;font-size:10px;font-weight:500;gap:2px;color:var(--txt)}
+.tabbar .ti{padding:2px 0;background:none!important;color:inherit!important}
+.tabbar svg{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--txt);font-weight:700}
+.tabbar button[aria-current="page"] svg{fill:currentColor}
+/* mini-lecteur : bande pleine largeur au-dessus des onglets */
+.mini{left:0;right:0;bottom:calc(54px + var(--safeB));height:60px;max-width:none;border-radius:0;padding:0 6px 0 117px;gap:4px;background:var(--bar);border:0;border-top:1px solid var(--line);box-shadow:0 -2px 10px rgba(0,0,0,.12);-webkit-backdrop-filter:none;backdrop-filter:none}
+.mini #mThumb{display:none}
+.mini .mopen{flex:1;min-width:0}
+.mini .mt{font-size:14px;font-weight:500;color:var(--txt)}
+.mini .mn{font-size:12px;color:var(--mut)}
+.mini .mpp,.mini .mcl{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;background:none;color:var(--txt);font-size:18px;box-shadow:none}
+.mini .mpp svg{width:22px;height:22px;fill:currentColor}
+.mini .mnx{display:none}
+.mini .mbar{position:absolute;left:0;right:0;top:-1px;height:2px;margin:0;border-radius:0;background:var(--s3)}
+.mini .mbar div{background:#ff0033;border-radius:0}
+body.miniOff .mini,body.miniOff #stage{display:none!important}
+/* le lecteur vidéo flottant */
+#stage{position:fixed!important;left:-3000px;top:0;width:160px;height:90px;aspect-ratio:auto!important;z-index:42;background:#000;overflow:hidden;border-radius:0;transition:none}
+body.hasCur:not(.inview) #stage,body.hasCur.inview:not(.watch) #stage{left:0;top:auto;bottom:calc(54px + var(--safeB));width:107px;height:60px}
+body.watch #stage{left:0;top:env(safe-area-inset-top,0px);bottom:auto;width:100vw;height:56.25vw;max-height:60vh;z-index:55}
+body.watch::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:#000;z-index:56}
+body.watch .tabbar,body.watch .mini{display:none!important}
+body:not(.hasCur) .mini{display:none!important}
+#stage .ph{font-size:11px}
+/* page de lecture */
+#vPlayer .in{padding:0 0 calc(40px + var(--safeB));max-width:none}
+#vPlayer .pvh,#vPlayer .part,#vPlayer .pglow{display:none!important}
+.wspace{height:calc(min(56.25vw,60vh) + env(safe-area-inset-top,0px))}
+.wtitle{display:flex;gap:8px;align-items:flex-start;padding:12px 12px 0}
+#vPlayer .ptitle{flex:1;margin:0;font:700 18px/1.3 var(--font);letter-spacing:0;text-align:left;color:var(--txt)}
+.wdown{width:34px;height:34px;flex:none;border-radius:17px;background:var(--s2);color:var(--txt);font-size:20px;line-height:1}
+.pmeta{padding:4px 12px 0;font-size:12.5px;color:var(--mut)}
+#vPlayer .pch{padding:12px 12px 0;margin:0;gap:10px;justify-content:flex-start}
+#vPlayer .pchn{flex:1;min-width:0;color:var(--txt);font-weight:650;font-size:15px}
+#vPlayer .pfav{background:var(--chipOn);color:var(--chipOnT);border:0;border-radius:18px;padding:8px 14px;font-weight:600;font-size:14px}
+#vPlayer .pfav[aria-pressed="true"]{background:var(--s2);color:var(--txt)}
+#vPlayer #pAdd{display:none}
+#vPlayer .pacts{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 12px 0;margin:0;justify-content:flex-start;flex-wrap:nowrap}
+#vPlayer .pacts::-webkit-scrollbar{display:none}
+#vPlayer .pacts .pill{flex:none;background:var(--s2);color:var(--txt);border:0;border-radius:18px;padding:8px 13px;font-size:13.5px;font-weight:600;white-space:nowrap}
+#vPlayer .pbar,#vPlayer .ptimes,#vPlayer .pctrl{display:none}
+body.engAudio #vPlayer .pbar{display:block;margin:14px 12px 0}
+body.engAudio #vPlayer .ptimes{display:flex;padding:0 12px}
+body.engAudio #vPlayer .pctrl{display:flex;margin:6px 0 0}
+#vPlayer .wsh{margin:18px 12px 8px;padding:10px 12px;border-radius:12px;background:var(--s2);display:flex;align-items:center}
+#vPlayer .wsh h2{font-size:14.5px;flex:1}
+.wauto{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut)}
+.wauto input{accent-color:#ff5a36;width:18px;height:18px}
+#vPlayer #pQueue{padding:0 12px}
+#vPlayer #pQueue .more{display:none}
+#pSugs{margin-top:12px}
+/* cartes : couleurs suivant le thème */
+.sgn{color:var(--txt)}
+#acts .ac2{background:var(--sheet)}
+#acts .ac2 button{color:var(--txt)}
+.view{background:var(--bg)}
+#vPlayer .pchn,#vPlayer #pChName{color:var(--txt)!important}
+#vPlayer .qi{background:var(--s2)}#vPlayer .qi .qn{color:var(--txt)}#vPlayer .qi .qc{color:var(--mut)}
+
 </style>
 </head>
 <body>
@@ -468,34 +602,30 @@ header.top,.greet,#feedSec{display:none!important}
 <div class="glow" aria-hidden="true"></div>
 <header class="top">
   <div class="brand"><span class="dot" id="logoDot" aria-hidden="true"></span><h1 id="appName">Braise</h1></div>
-  <div class="hbtns">
-  </div>
+  <div class="hbtns"><button type="button" class="ib" id="openSearch" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg></button><button type="button" class="ib" id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
 </header>
+<nav class="hchips" aria-label="Rubriques"><button type="button" class="on" data-c="home">Pour toi</button><button type="button" data-c="list">Ma liste ♥</button><button type="button" data-c="chans">Mes chaînes</button><button type="button" data-c="live">🔴 Direct</button></nav>
 
 <div class="greet"><span id="hello">Bonsoir.</span><br><span class="grad" id="hello2">On reprend ?</span></div>
 
 
 <section class="hero" aria-label="En lecture">
-  <div class="htop"><button type="button" class="sbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg><span>Rechercher</span></button><button type="button" class="ib" id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
-  <div class="frame"><div id="stage">
-    <div class="ph" id="ph"><span>Choisis une vidéo pour allumer la lumière</span></div>
-    <img id="cover" alt="">
-    <div id="ytbox"><div id="player"></div></div>
-  </div><span id="mode">Prêt</span></div>
+  <div class="frame"><span id="mode">Prêt</span><div id="bar"><div></div></div></div>
   <div class="hinfo">
-    <button type="button" class="htext" id="openPlayer" aria-label="Ouvrir le lecteur">
-      <small id="heroLab">EN LECTURE</small>
-      <span id="now">Rien pour l'instant</span>
-      <span id="heroCh"></span>
-    </button>
+    <span class="hav" id="heroAv" aria-hidden="true"></span>
+    <div class="hcol">
+      <button type="button" class="htext" id="openPlayer" aria-label="Ouvrir le lecteur">
+        <span id="now">Rien pour l'instant</span>
+        <span class="hmeta"><span id="heroCh"></span><small id="heroLab">EN LECTURE</small></span>
+      </button>
+      <div class="hact"><button type="button" class="bigplay" id="heroPlay" aria-label="Lecture ou pause" data-l="Lecture"></button><button type="button" class="hmu" id="heroMu" aria-label="Écouter en son seul">🎵 Son seul</button></div>
+    </div>
   </div>
-  <div class="hact"><button type="button" class="bigplay" id="heroPlay" aria-label="Lecture ou pause" data-l="Lecture"></button><button type="button" class="hmu" id="heroMu" aria-label="Écouter en son seul">🎵</button></div>
-  <div id="bar"><div></div></div>
 </section>
 
 <div class="sec" id="sugSec" hidden>
-  <div class="sh"><h2>Suggestions</h2><button type="button" class="lnk" id="sugReload">Actualiser</button></div>
   <div id="homeSug"></div>
+  <button type="button" class="more" id="sugReload">Voir d'autres suggestions</button>
 </div>
 
 <div class="sec" id="chSec" hidden>
@@ -519,6 +649,12 @@ header.top,.greet,#feedSec{display:none!important}
 <div hidden><div class="lab" id="favLab"></div><div class="rc" id="favs"></div><div class="lab" id="rcLab"></div><div class="rc" id="recent"></div><canvas id="scene" width="10" height="10"></canvas></div>
 </main>
 
+<div id="stage">
+    <div class="ph" id="ph"><span>Choisis une vidéo pour allumer la lumière</span></div>
+    <img id="cover" alt="">
+    <div id="ytbox"><div id="player"></div></div>
+</div>
+
 <div class="mini" id="mini" hidden>
   <button type="button" class="mopen" id="miniOpen" aria-label="Ouvrir le lecteur">
     <img id="mThumb" alt="">
@@ -526,25 +662,28 @@ header.top,.greet,#feedSec{display:none!important}
   </button>
   <button type="button" class="mpp" id="mpp" aria-label="Lecture ou pause"></button>
   <button type="button" class="mnx" id="mnext" aria-label="Vidéo suivante"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+  <button type="button" class="mcl" id="mClose" aria-label="Fermer">✕</button>
   <div class="mbar"><div id="mbar"></div></div>
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Navigation">
   <button type="button" data-tab="home" aria-current="page"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg></span>Accueil</button>
-  <button type="button" data-tab="search"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>Recherche</button>
-  <button type="button" data-tab="chans"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg></span>Chaînes</button>
-  <button type="button" data-tab="list"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h9M3 6h.01M3 12h.01M3 18h.01"/></svg></span>Liste ♥</button>
+  <button type="button" data-tab="chans"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M7 3h10M10 10l5 2.5-5 2.5z"/></svg></span>Abonnements</button>
+  <button type="button" data-tab="list"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>Ma liste</button>
+  <button type="button" data-tab="me"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Vous</button>
 </nav>
 
 <section class="view player" id="vPlayer" aria-label="Lecteur"><div class="in">
   <div class="pglow" id="pGlow" aria-hidden="true"></div>
+  <div class="wspace" id="wSpace"></div>
   <div class="vh pvh">
     <button type="button" class="ib" data-close aria-label="Fermer le lecteur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <div class="pfrom"><small>LECTURE EN COURS</small><span id="pFrom">Liste ♥</span></div>
     <button type="button" class="ib" id="pVideo" aria-label="Voir la vidéo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg></button>
   </div>
   <div class="part"><img id="pArt" alt=""></div>
-  <h2 class="ptitle" id="pTitle"></h2>
+  <div class="wtitle"><h2 class="ptitle" id="pTitle"></h2><button type="button" class="wdown" id="wDown" aria-label="Réduire">⌄</button></div>
+  <div class="pmeta" id="pMeta"></div>
   <div class="pch">
     <button type="button" class="pchn" id="pCh"><span class="av" id="pAv"></span><span id="pChName"></span></button>
     <button type="button" class="pfav" id="pFav" aria-pressed="false">☆ Favori</button>
@@ -560,6 +699,7 @@ header.top,.greet,#feedSec{display:none!important}
     <button type="button" class="skip" id="pFwd" aria-label="Avancer de 15 secondes">+15</button>
   </div>
   <div class="pacts">
+    <button type="button" class="pill" id="pMusic">🎵 Son seul</button>
     <button type="button" class="pill" id="pTimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span id="pTimerLab">Minuterie</span></button>
     <button type="button" class="pill" id="pSpeed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 14l4-4"/><path d="M3.3 17a10 10 0 1 1 17.4 0"/></svg><span id="pSpeedLab">1×</span></button>
     <button type="button" class="pill" id="pChan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg>La chaîne</button>
@@ -567,8 +707,9 @@ header.top,.greet,#feedSec{display:none!important}
   <div class="tmenu" id="tMenu" hidden>
     <button type="button" data-m="0">Désactiver</button><button type="button" data-m="15">15 min</button><button type="button" data-m="30">30 min</button><button type="button" data-m="45">45 min</button><button type="button" data-m="60">1 h</button><button type="button" data-m="90">1 h 30</button><button type="button" data-m="end">Fin de la vidéo</button>
   </div>
-  <div class="sh"><h2>À suivre</h2><button type="button" class="lnk" id="pArtist">Même artiste</button></div>
+  <div class="sh wsh"><h2>À suivre</h2><label class="wauto">Lecture auto <input type="checkbox" id="wAuto"></label><button type="button" class="lnk" id="pArtist" hidden>Même artiste</button></div>
   <div id="pQueue"></div>
+  <div id="pSugs"></div>
 </div></section>
 
 <section class="view" id="vList" aria-label="Liste ♥"><div class="in">
@@ -634,7 +775,7 @@ header.top,.greet,#feedSec{display:none!important}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 47</div>
+  <div class="lab" id="ver">Version 48</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1064,7 +1205,7 @@ function flushPos(){const cv=list[idx];if(!cv)return;try{const t=engine==='audio
 
 /* lecteur iPhone : sans « playsinline », iOS ouvre la vidéo dans son lecteur plein écran (avec image dans l'image) */
 const LS_N='bg_native_v1';
-function nativeFs(){try{return localStorage.getItem(LS_N)!=='0'}catch(e){return true}}
+function nativeFs(){try{return localStorage.getItem(LS_N)==='1'}catch(e){return false}} /* v48 : vidéo dans l'appli par défaut, comme YouTube */
 window.onYouTubeIframeAPIReady=()=>{
   yt=new YT.Player('player',{host:'https://www.youtube-nocookie.com',playerVars:{playsinline:nativeFs()?0:1,rel:0},
     events:{onReady:()=>{ytReady=true;if((engine==='yt'||engine==='loading')&&list[idx])ytLoad(list[idx].id,curStart)},
@@ -1839,6 +1980,7 @@ function setTabUI(t){document.querySelectorAll('#tabbar button').forEach(b=>{if(
 document.querySelectorAll('#tabbar button').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
   if(t==='home'){closeViews();window.scrollTo({top:0,behavior:'smooth'})}
   else if(t==='search')openSearch('');
+  else if(t==='me'){openSet();uiHiddenList();setTabUI('me')}
   else if(t==='chans'){uiChans();openView('vChans')}
   else if(t==='list'){openView('vList')}});
 
@@ -1919,26 +2061,37 @@ async function getSugs(cur,force){
 }
 /* la suite automatique (bouton suivant, fin de vidéo) = la 1re suggestion */
 findSug=async function(cur){const s=await getSugs(cur);return s[0]||null};
+function avStyle(el,name){const n=String(name||'?');const c=AVC[hashS(n)%AVC.length];el.style.background=`linear-gradient(135deg,${c[0]},${c[1]})`;el.textContent=(n.trim()[0]||'?').toUpperCase()}
 function sgRow(v,first){
   const d=document.createElement('div');d.className='sgr';d.setAttribute('role','button');d.tabIndex=0;
-  d.innerHTML='<img loading="lazy" alt=""><div class="sgt"><div class="sgn"></div><small></small></div><button type="button" class="sgb mu" aria-label="Écouter en son seul">🎵</button><button type="button" class="sgb ad" aria-label="Ajouter à ma liste">+</button>';
-  d.querySelector('img').src=thumb(v.id);d.querySelector('.sgn').textContent=v.title;
-  d.querySelector('small').textContent=[first?'ENSUITE':'',v.chT,v.live?'🔴 DIRECT':v.dur].filter(Boolean).join(' · ');
-  if(first)d.classList.add('first');
+  d.innerHTML='<div class="sgi"><img loading="lazy" alt=""><span class="sgd"></span></div><div class="sgm"><span class="sav"></span><div class="sgt"><div class="sgn"></div><small></small></div><button type="button" class="dots" aria-label="Plus d\'options">⋮</button><button type="button" class="sgb mu" aria-label="Écouter en son seul">🎵</button><button type="button" class="sgb ad" aria-label="Ajouter à ma liste">+</button></div>';
+  d.querySelector('img').src=thumb(v.id,'hqdefault');d.querySelector('.sgn').textContent=v.title;
+  const du=d.querySelector('.sgd');if(v.live){du.textContent='🔴 DIRECT';du.classList.add('lv')}else if(v.dur)du.textContent=v.dur;else du.remove();
+  avStyle(d.querySelector('.sav'),v.chT);
+  const sm=d.querySelector('small');sm.textContent=[v.chT,v.pub&&!v.live?ago(v.pub):''].filter(Boolean).join(' · ');
+  if(first){d.classList.add('first');const e=document.createElement('b');e.textContent='Ensuite · ';sm.prepend(e)}
   d.onclick=()=>addItem(v,{playNow:true});
   d.querySelector('.mu').onclick=e=>{e.stopPropagation();addItem(v,{playNow:true,music:true})};
-  d.querySelector('.ad').onclick=e=>{e.stopPropagation();addItem(v);uiSugs()};
+  d.querySelector('.ad').onclick=e=>{e.stopPropagation();addItem(v);drawSugs()};
+  d.querySelector('.dots').onclick=e=>{e.stopPropagation();openActs(v)};
   return d;
+}
+function openActs(v){
+  let s=$('#acts');if(!s){s=document.createElement('div');s.id='acts';s.hidden=true;s.innerHTML='<div class="ac2"><b></b><button type="button" data-a="mu">🎵  Écouter en son seul</button><button type="button" data-a="add">＋  Ajouter à ma liste</button><button type="button" data-a="hide">🚫  Masquer cette chaîne</button><button type="button" data-a="x">Annuler</button></div>';document.body.appendChild(s);s.onclick=e=>{if(e.target===s)s.hidden=true}}
+  s.querySelector('b').textContent=v.title;
+  s.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{s.hidden=true;const a=bt.dataset.a;
+    if(a==='mu')addItem(v,{playNow:true,music:true});else if(a==='add'){addItem(v);drawSugs()}else if(a==='hide'&&v.ch){hideChan(v.ch,v.chT);SG.all=SG.all.filter(x=>x.ch!==v.ch);drawSugs()}});
+  s.hidden=false;
 }
 function uiSugs(){
   const sec=$('#sugSec'),box=$('#homeSug');const cur=list[idx];
   if(!cur||!(API_KEY||relayUp())){sec.hidden=true;return}
   sec.hidden=false;
   if(SG.forId!==cur.id){
-    SG.forId=cur.id;SG.all=[];SG.off=0;box.textContent='';
-    for(let k=0;k<4;k++){const s=document.createElement('div');s.className='sgr sk';box.appendChild(s)}
+    SG.forId=cur.id;SG.all=[];SG.n=8;box.textContent='';
+    for(let k=0;k<2;k++){const s=document.createElement('div');s.className='sgr sk';box.appendChild(s)}
     const id=cur.id;
-    getSugs(cur).then(a=>{if(SG.forId!==id)return;SG.all=a;SG.off=0;drawSugs();
+    getSugs(cur).then(a=>{if(SG.forId!==id)return;SG.all=a;SG.n=8;drawSugs();
       if(a[0]&&!(upSug&&upSug.forId===id&&upSug.v))upSug={forId:id,v:a[0]};if(typeof uiQueue==='function')uiQueue()}).catch(()=>{if(SG.forId===id){box.textContent='';sec.hidden=true}});
     return;
   }
@@ -1948,15 +2101,111 @@ function drawSugs(){
   const box=$('#homeSug');box.textContent='';const inList=new Set(list.map(x=>x.id));
   const a=SG.all.filter(v=>!heard.has(v.id)&&!inList.has(v.id));
   if(!a.length){$('#sugSec').hidden=true;return}
-  const page=a.slice(SG.off,SG.off+6);(page.length?page:a.slice(0,6)).forEach((v,k)=>box.appendChild(sgRow(v,SG.off===0&&k===0&&nothingNext())));
+  const nn=nothingNext();a.slice(0,SG.n||8).forEach((v,k)=>box.appendChild(sgRow(v,k===0&&nn)));
+  $('#sugReload').textContent=(SG.n||8)<a.length?'Voir plus':'Voir d\'autres suggestions';
 }
 function nothingNext(){const u=upcoming(1);return !u.length||u[0].kind!=='list'}
-$('#sugReload').onclick=()=>{const n=SG.all.length;if(SG.off+6<n){SG.off+=6;drawSugs()}else{const c=list[idx];if(!c)return;SG.forId=null;if(SG.cache[c.id])delete SG.cache[c.id];uiSugs()}};
+async function sgMore(){const c=list[idx];if(!c||SG.busy)return;SG.busy=true;const b=$('#sugReload');b.textContent='Chargement…';
+  try{const q=sgQuery(c);const ex=new Set(SG.all.map(x=>x.id));SG.page=(SG.page||0)+1;
+    let r=await searchVideos(q,{max:25,all:true,token:SG.tok||null});SG.tok=r.next||null;
+    if(!r.length||!SG.tok){const a2=guessArtist(c);if(a2)r=r.concat(await searchVideos(a2,{max:25,all:true}).catch(()=>[]))}
+    const add=sgRank(c,r.map((v,k)=>Object.assign({},v,{_b:90-k*2,_s:0}))).filter(v=>!ex.has(v.id));
+    SG.all=SG.all.concat(add);SG.n=(SG.n||8)+8;drawSugs();if(!add.length)toast('Pas d\'autres suggestions pour cette vidéo')}
+  catch(e){toast(errMsg(e))}finally{SG.busy=false;drawSugs()}}
+$('#sugReload').onclick=()=>{const a=SG.all.filter(v=>!heard.has(v.id));if((SG.n||8)<a.length){SG.n+=8;drawSugs()}else sgMore()};
+/* défilement infini : on montre la suite en arrivant en bas */
+window.addEventListener('scroll',()=>{if(document.querySelector('.view.on'))return;if(window.innerHeight+window.scrollY>document.body.scrollHeight-700){const a=SG.all.filter(v=>!heard.has(v.id));if((SG.n||8)<a.length){SG.n+=6;drawSugs()}}},{passive:true});
+/* puces du haut */
+document.querySelectorAll('.hchips button').forEach(b=>b.onclick=()=>{const c=b.dataset.c;
+  if(c==='home'){closeViews();window.scrollTo({top:0,behavior:'smooth'})}
+  else if(c==='list'||c==='chans'){const t=document.querySelector('#tabbar button[data-tab='+c+']');if(t)t.click()}
+  else if(c==='live'){openSearch('');setSOrder('live');toast('Tape un nom : seuls les directs en cours s\'afficheront')}});
+/* mini-lecteur caché tant que la vidéo en cours est visible sur l'accueil (comme YouTube) */
+try{new IntersectionObserver(es=>{es.forEach(e=>document.body.classList.toggle('heroVis',e.isIntersecting))},{threshold:.15}).observe(document.querySelector('.hero .frame'))}catch(e){}
+const _ov48=openView;openView=function(id){_ov48(id);document.body.classList.add('inview')};
+const _cv48=closeViews;closeViews=function(){_cv48();document.body.classList.remove('inview')};
 $('#heroMu').onclick=()=>{const c=list[idx];if(!c){openSearch('');return}musicMode=true;play()};
 let _sgT=0;
-const _uiCur=uiCur;uiCur=function(){_uiCur();const c=list[idx];$('#heroCh').textContent=c?(c.chT||''):'';clearTimeout(_sgT);_sgT=setTimeout(uiSugs,c&&SG.forId!==c.id?700:0)};
-const _uiHeroLab=uiHeroLab;uiHeroLab=function(){_uiHeroLab();const c=list[idx];const p=c?posMap[c.id]:0;$('#heroPlay').dataset.l=playing?'Pause':(c&&!engine&&p>3?'Reprendre':'Lecture')};
+const _uiCur=uiCur;uiCur=function(){_uiCur();try{stageState()}catch(e){}const c=list[idx];$('#heroCh').textContent=c?(c.chT||''):'';avStyle($('#heroAv'),c?(c.chT||c.title):'B');clearTimeout(_sgT);_sgT=setTimeout(uiSugs,c&&SG.forId!==c.id?700:0)};
+const _uiHeroLab=uiHeroLab;uiHeroLab=function(){_uiHeroLab();{const l=$('#heroLab');const t=l.textContent;l.textContent=t.charAt(0)+t.slice(1).toLowerCase().replace(/à (\d)/,'à $1')}const c=list[idx];const p=c?posMap[c.id]:0;$('#heroPlay').dataset.l=playing?'Pause':(c&&!engine&&p>3?'Reprendre':'Lecture')};
 uiCur();
+
+
+/* ================= v48 : comportement YouTube ================= */
+/* lecteur flottant : grand en haut de la page de lecture, petit dans le mini-lecteur */
+const _ov49=openView;openView=function(id){_ov49(id);document.body.classList.toggle('watch',id==='vPlayer');if(id==='vPlayer'){document.body.classList.remove('miniOff');uiWatch()}};
+const _cv49=closeViews;closeViews=function(){_cv49();document.body.classList.remove('watch')};
+function stageState(){const c=list[idx];document.body.classList.toggle('hasCur',!!c);document.body.classList.toggle('engAudio',engine==='audio')}
+/* toucher une vidéo = page de lecture (comme YouTube) ; 🎵 = son seul sans ouvrir la page */
+const _addItem49=addItem;addItem=function(v,opt){_addItem49(v,opt);if(opt&&opt.playNow&&!opt.music){closeViews();setTimeout(openPlayer,30)}};
+$('#list').addEventListener('click',e=>{if(e.target.closest('.lm,b'))return;if(e.target.closest('.it'))setTimeout(()=>{if(!e.defaultPrevented)openPlayer()},60)});
+$('#mClose').onclick=e=>{e.stopPropagation();try{userPaused=true;engine==='audio'?au.pause():yt.pauseVideo()}catch(x){}document.body.classList.add('miniOff')};
+$('#wDown').onclick=()=>closeViews();
+$('#pMusic').onclick=()=>{const c=list[idx];if(!c)return;const[t]=ptime();if(t>3)savePos(c.id,t);musicMode=true;play();toast('Son seul : tu peux verrouiller l\'écran')};
+$('#wAuto').checked=$('#autoSug').checked;$('#wAuto').onchange=()=>{const a=$('#autoSug');a.checked=$('#wAuto').checked;a.dispatchEvent(new Event('change'))};
+/* glisser vers le bas sur la page de lecture = réduire */
+(function(){const v=$('#vPlayer');let y0=null,x0=0;
+  v.addEventListener('touchstart',e=>{y0=v.scrollTop<=0?e.touches[0].clientY:null;x0=e.touches[0].clientX},{passive:true});
+  v.addEventListener('touchmove',e=>{if(y0===null)return;const dy=e.touches[0].clientY-y0;if(dy>0&&Math.abs(e.touches[0].clientX-x0)<dy)v.style.transform='translateY('+Math.min(dy*.6,240)+'px)'},{passive:true});
+  v.addEventListener('touchend',e=>{if(y0===null)return;const dy=(e.changedTouches[0].clientY-y0);v.style.transform='';y0=null;if(dy>110)closeViews()},{passive:true});
+})();
+function uiWatch(){
+  const c=list[idx];if(!c)return;
+  $('#pMeta').textContent=[c.chT,c.pub?ago(c.pub):''].filter(Boolean).join(' · ');
+  const box=$('#pSugs');box.textContent='';
+  const inList=new Set(list.map(x=>x.id));const q=new Set(upcoming(5).filter(e=>e.v).map(e=>e.v.id));
+  if(SG.forId===c.id)SG.all.filter(v=>!heard.has(v.id)&&!inList.has(v.id)&&!q.has(v.id)).slice(0,12).forEach(v=>box.appendChild(sgRow(v,false)));
+}
+const _uiSheet49=uiSheet;uiSheet=function(){_uiSheet49();uiWatch()};
+
+/* accueil : fil façon YouTube = suggestions + nouveautés de tes chaînes, mélangées */
+let FEED49=[],HCHIP='all';
+const _drawFeed49=drawFeed;drawFeed=function(items){_drawFeed49(items);FEED49=(items||[]).slice();drawSugs()};
+drawSugs=function(){
+  const box=$('#homeSug');box.textContent='';const inList=new Set(list.map(x=>x.id));const seen=new Set();
+  const ok=v=>v&&!heard.has(v.id)&&!inList.has(v.id)&&!isChanHidden(v)&&!seen.has(v.id)&&seen.add(v.id);
+  const a=SG.all.filter(v=>!heard.has(v.id)&&!inList.has(v.id));const f=FEED49.filter(v=>!heard.has(v.id)&&!inList.has(v.id));
+  let out=[];
+  if(HCHIP==='sug')out=a.filter(ok);
+  else if(HCHIP==='chans')out=f.filter(ok);
+  else if(HCHIP==='live')out=a.concat(f).filter(v=>v.live).filter(ok);
+  else{let i=0,j=0;while(i<a.length||j<f.length){for(let k=0;k<2&&i<a.length;k++){const v=a[i++];if(ok(v))out.push(v)}if(j<f.length){const v=f[j++];if(ok(v))out.push(v)}}}
+  $('#sugSec').hidden=false;
+  if(!out.length){const e=document.createElement('div');e.className='hempty';e.textContent=HCHIP==='live'?'Aucun direct en cours dans tes suggestions. Utilise la recherche → 🔴 En direct.':(list[idx]?'Je prépare des vidéos pour toi…':'Lance une vidéo : je te proposerai la suite ici, comme sur YouTube.');box.appendChild(e);$('#sugReload').hidden=true;return}
+  $('#sugReload').hidden=false;
+  const nn=nothingNext();out.slice(0,SG.n||10).forEach((v,k)=>box.appendChild(sgRow(v,HCHIP!=='chans'&&k===0&&nn&&a[0]&&v.id===a[0].id)));
+  $('#sugReload').textContent=(SG.n||10)<out.length?'Voir plus':'Voir d\'autres suggestions';
+  if(document.body.classList.contains('watch'))uiWatch();
+};
+document.querySelectorAll('.hchips button').forEach(b=>{b.onclick=()=>{const c=b.dataset.c;
+  document.querySelectorAll('.hchips button').forEach(x=>x.classList.toggle('on',x===b));
+  HCHIP=c==='home'?'all':c==='list'?'sug':c;SG.n=10;drawSugs();window.scrollTo({top:0})}});
+(function(){const h=document.querySelectorAll('.hchips button');const L=[['home','Tout'],['list','Pour toi'],['chans','Mes chaînes'],['live','🔴 Directs']];h.forEach((b,i)=>{if(L[i]){b.dataset.c=L[i][0];b.textContent=L[i][1]}})})();
+/* les nouveautés des chaînes se chargent aussi pour le fil */
+setTimeout(()=>{try{uiFeed(false)}catch(e){}},1200);
+
+/* écran verrouillé / appli quittée : la vidéo passe toute seule en son seul (via ton PC) puis reprend en vidéo au retour */
+let handoff=null;
+function unlockAu(){try{if(!au.src||au.paused){const was=au.src;au.src=SILENT;au.play().then(()=>{au.pause();if(was)au.src=was}).catch(()=>{})}}catch(e){}}
+document.addEventListener('touchend',function once(){unlockAu();document.removeEventListener('touchend',once)},{passive:true});
+document.addEventListener('visibilitychange',()=>{
+  const c=list[idx];
+  if(document.hidden){
+    if(engine!=='yt'||!playing||!c||Date.now()<homeDownUntil)return;
+    let t=0;try{t=yt.getCurrentTime()||0}catch(e){}
+    handoff={id:c.id,t};
+    try{au.src=HOME_AUDIO+'/audio?id='+c.id;au.addEventListener('loadedmetadata',()=>{try{au.currentTime=t}catch(e){}},{once:true});
+      const p=au.play();if(p&&p.then)p.then(()=>{try{yt.pauseVideo()}catch(e){}setMode('audio')}).catch(()=>{handoff=null})}catch(e){handoff=null}
+  }else if(handoff){
+    const h=handoff;handoff=null;const cur=list[idx];if(!cur||cur.id!==h.id||engine!=='audio')return;
+    const t=au.currentTime||h.t;au.pause();au.removeAttribute('src');musicMode=false;setMode('yt');if(ytReady)ytLoad(cur.id,t);
+  }
+});
+/* le PC prépare le son de la vidéo en cours dès qu'elle démarre : le passage en son seul est immédiat */
+let _pf49='';setInterval(()=>{const c=list[idx];if(engine==='yt'&&playing&&c&&c.id!==_pf49&&Date.now()>homeDownUntil){_pf49=c.id;fetch(HOME_AUDIO+'/prefetch?id='+c.id,{mode:'cors'}).catch(()=>{})}},4000);
+setInterval(stageState,700);stageState();
+/* v48 : passage unique à la vidéo dans l'appli (comme YouTube) ; l'ancien lecteur iPhone reste disponible dans les réglages */
+try{if(!localStorage.getItem('bg_v48mig')){localStorage.setItem(LS_N,'0');localStorage.setItem('bg_v48mig','1');const n=$('#nativeFs');if(n)n.checked=false}}catch(e){}
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
