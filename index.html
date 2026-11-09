@@ -595,6 +595,21 @@ body.engAudio #vPlayer .pctrl{display:flex;margin:6px 0 0}
 #vPlayer .pchn,#vPlayer #pChName{color:var(--txt)!important}
 #vPlayer .qi{background:var(--s2)}#vPlayer .qi .qn{color:var(--txt)}#vPlayer .qi .qc{color:var(--mut)}
 
+/* v49 : petit lecteur flottant (coin bas droite) au lieu de la bande */
+.mini{display:none!important}
+body.hasCur:not(.inview) #stage,body.hasCur.inview:not(.watch) #stage{left:auto;right:8px;top:auto;bottom:calc(62px + var(--safeB));width:58vw;max-width:300px;height:calc(min(58vw,300px)*.5625);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+#fmini{position:fixed;display:none;right:8px;bottom:calc(62px + var(--safeB));width:58vw;max-width:300px;height:calc(min(58vw,300px)*.5625);border-radius:12px;z-index:43;overflow:hidden}
+body.hasCur:not(.watch):not(.miniOff) #fmini{display:block}
+#fmini .fpp,#fmini .fcl{position:absolute;top:8px;width:40px;height:40px;border-radius:20px;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
+#fmini .fpp{left:8px}#fmini .fcl{right:8px}
+#fmini .fpp svg{width:18px;height:18px;fill:#fff}
+#fmini .fbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.3)}
+#fmini .fbar i{display:block;height:100%;width:0;background:#ff0033}
+/* barre rouge de progression sur les vignettes */
+.vprog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.35);z-index:2}
+.vprog i{display:block;height:100%;background:#ff0033}
+.res .th{position:relative;overflow:hidden}
+
 </style>
 </head>
 <body>
@@ -775,7 +790,7 @@ body.engAudio #vPlayer .pctrl{display:flex;margin:6px 0 0}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 48</div>
+  <div class="lab" id="ver">Version 49</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1044,7 +1059,7 @@ function savePos(id,t,force){
   if(!id||!(t>=0))return;const now=Date.now();if(!force&&now-posT<2000)return;posT=now;
   t=Math.floor(t);
   if(t>3)posMap[id]=t;else delete posMap[id];
-  const ks=Object.keys(posMap);if(ks.length>60)ks.slice(0,ks.length-60).forEach(k=>delete posMap[k]);
+  const ks=Object.keys(posMap);if(ks.length>400)ks.slice(0,ks.length-400).forEach(k=>delete posMap[k]);
   try{localStorage.setItem(LS_T,JSON.stringify({id,t}));localStorage.setItem(LS_TM,JSON.stringify(posMap))}catch(e){}
 }
 function startFor(id){const r=resume;resume=null;if(r&&r.id===id&&r.t>3)return r.t;const t=posMap[id];return t>3?t:0}
@@ -1205,7 +1220,7 @@ function flushPos(){const cv=list[idx];if(!cv)return;try{const t=engine==='audio
 
 /* lecteur iPhone : sans « playsinline », iOS ouvre la vidéo dans son lecteur plein écran (avec image dans l'image) */
 const LS_N='bg_native_v1';
-function nativeFs(){try{return localStorage.getItem(LS_N)==='1'}catch(e){return false}} /* v48 : vidéo dans l'appli par défaut, comme YouTube */
+function nativeFs(){try{return localStorage.getItem(LS_N)!=='0'}catch(e){return true}} /* v49 : lecteur iPhone (il flotte quand on glisse vers le haut, et reste en quittant l'appli) */
 window.onYouTubeIframeAPIReady=()=>{
   yt=new YT.Player('player',{host:'https://www.youtube-nocookie.com',playerVars:{playsinline:nativeFs()?0:1,rel:0},
     events:{onReady:()=>{ytReady=true;if((engine==='yt'||engine==='loading')&&list[idx])ytLoad(list[idx].id,curStart)},
@@ -2205,7 +2220,23 @@ document.addEventListener('visibilitychange',()=>{
 let _pf49='';setInterval(()=>{const c=list[idx];if(engine==='yt'&&playing&&c&&c.id!==_pf49&&Date.now()>homeDownUntil){_pf49=c.id;fetch(HOME_AUDIO+'/prefetch?id='+c.id,{mode:'cors'}).catch(()=>{})}},4000);
 setInterval(stageState,700);stageState();
 /* v48 : passage unique à la vidéo dans l'appli (comme YouTube) ; l'ancien lecteur iPhone reste disponible dans les réglages */
-try{if(!localStorage.getItem('bg_v48mig')){localStorage.setItem(LS_N,'0');localStorage.setItem('bg_v48mig','1');const n=$('#nativeFs');if(n)n.checked=false}}catch(e){}
+try{if(!localStorage.getItem('bg_v49mig')){localStorage.setItem(LS_N,'1');localStorage.setItem('bg_v49mig','1');const n=$('#nativeFs');if(n)n.checked=true}}catch(e){}
+
+/* ================= v49 ================= */
+/* barre de progression rouge sur les vignettes + reprise là où tu t'étais arrêté */
+let durMap={};try{durMap=JSON.parse(localStorage.getItem('bg_durmap_v1')||'{}')||{}}catch(e){durMap={}}
+setInterval(()=>{const c=list[idx];if(!c)return;const[t,d]=ptime();if(d>5&&durMap[c.id]!==Math.round(d)){durMap[c.id]=Math.round(d);const k=Object.keys(durMap);if(k.length>400)k.slice(0,k.length-400).forEach(x=>delete durMap[x]);try{localStorage.setItem('bg_durmap_v1',JSON.stringify(durMap))}catch(e){}}},5000);
+function progPct(v){if(!v||!v.id)return 0;if(heard.has(v.id))return 100;const p=posMap[v.id];if(!(p>3))return 0;const d=durMap[v.id]||durS(v.dur);return d?Math.max(3,Math.min(100,p/d*100)):0}
+function addProg(el,v){if(!el)return;const pc=progPct(v);if(!pc)return;const b=document.createElement('span');b.className='vprog';b.innerHTML='<i></i>';b.firstChild.style.width=pc+'%';el.appendChild(b)}
+const _sgRow49=sgRow;sgRow=function(v,first){const d=_sgRow49(v,first);addProg(d.querySelector('.sgi'),v);return d};
+const _resCard49=resCard;resCard=function(v,n){const d=_resCard49(v,n);addProg(d.querySelector('.th'),v);return d};
+/* plus de bande mini-lecteur : un petit lecteur flottant dans le coin, comme dans YouTube */
+(function(){const o=document.createElement('div');o.id='fmini';o.innerHTML='<button type="button" class="fpp" aria-label="Lecture ou pause"></button><button type="button" class="fcl" aria-label="Fermer">✕</button><div class="fbar"><i></i></div>';document.body.appendChild(o);
+  o.onclick=e=>{if(e.target.closest('.fpp,.fcl'))return;openPlayer()};
+  o.querySelector('.fpp').onclick=e=>{e.stopPropagation();toggle()};
+  o.querySelector('.fcl').onclick=e=>{e.stopPropagation();try{userPaused=true;engine==='audio'?au.pause():yt.pauseVideo()}catch(x){}document.body.classList.add('miniOff')};
+  setInterval(()=>{o.querySelector('.fpp').innerHTML=playing?ICON_PAUSE:ICON_PLAY;const[t,d]=ptime();o.querySelector('.fbar i').style.width=(d?Math.min(100,t/d*100):0)+'%'},500);
+})();
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
