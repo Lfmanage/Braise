@@ -632,9 +632,11 @@ body.native.playing.watch #stage::after{content:"⧉";font-size:24px;padding:0}
 #toast button{color:#ff8a65!important}
 
 /* v59 : quand la vidéo joue vraiment dans la page, on la montre (au lieu de l'image figée avec ⧉) */
-body.native.playing.watch #stage #ytbox{opacity:1}
-body.native.playing.watch #stage .ph{display:none!important}
-body.native.playing.watch #stage::after{display:none}
+body.native.playing.watch:not(.engAudio) #stage #ytbox{opacity:1}
+body.native.playing.watch:not(.engAudio) #stage .ph{display:none!important}
+body.native.playing.watch:not(.engAudio) #stage::after{display:none}
+body.engAudio #stage #ytbox{pointer-events:none;opacity:.02}
+body.native.playing.watch.engAudio #stage::after{content:"▶";font-size:26px;padding-left:4px}
 
 </style>
 </head>
@@ -816,7 +818,7 @@ body.native.playing.watch #stage::after{display:none}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 59</div>
+  <div class="lab" id="ver">Version 60</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -2239,7 +2241,7 @@ document.querySelectorAll('.hchips button').forEach(b=>{b.onclick=()=>{const c=b
 setTimeout(()=>{try{uiFeed(false)}catch(e){}},1200);
 
 /* écran verrouillé / appli quittée : la vidéo passe toute seule en son seul (via ton PC) puis reprend en vidéo au retour */
-let handoff=null;
+let handoff=null,backAudio=false;
 function unlockAu(){try{if(!au.src||au.paused){const was=au.src;au.src=SILENT;au.play().then(()=>{au.pause();if(was)au.src=was}).catch(()=>{})}}catch(e){}}
 document.addEventListener('touchend',function once(){unlockAu();document.removeEventListener('touchend',once)},{passive:true});
 document.addEventListener('visibilitychange',()=>{
@@ -2251,8 +2253,9 @@ document.addEventListener('visibilitychange',()=>{
     try{au.src=HOME_AUDIO+'/audio?id='+c.id;au.addEventListener('loadedmetadata',()=>{try{au.currentTime=t}catch(e){}},{once:true});
       const p=au.play();if(p&&p.then)p.then(()=>{try{yt.pauseVideo()}catch(e){}setMode('audio')}).catch(()=>{handoff=null})}catch(e){handoff=null}
   }else if(handoff){
+    /* v60 : au retour, le son continue sans coupure (une vidéo ne peut pas démarrer toute seule sur iPhone) ; toucher l'image = passer en vidéo */
     const h=handoff;handoff=null;const cur=list[idx];if(!cur||cur.id!==h.id||engine!=='audio')return;
-    const t=au.currentTime||h.t;au.pause();au.removeAttribute('src');musicMode=false;setMode('yt');if(ytReady)ytLoad(cur.id,t);
+    musicMode=false;backAudio=true;if(au.paused)au.play().catch(()=>{});toast('Le son continue · touche l\'image pour la vidéo');
   }
 });
 /* le PC prépare le son de la vidéo en cours dès qu'elle démarre : le passage en son seul est immédiat */
@@ -2495,6 +2498,23 @@ setTimeout(refreshFavOnly,1500);
 const _toggleFav57=toggleFav;toggleFav=function(id,name){_toggleFav57(id,name);delete FAVV[id];SG.forId=null;refreshFavOnly();try{uiSugs()}catch(e){}};
 /* empty state de l'accueil : section cachée tant qu'il n'y a rien */
 setTimeout(()=>{try{drawSugs()}catch(e){}},500);
+
+
+/* ================= v60 : suivant / précédent depuis l'écran verrouillé + pas de pause au retour ================= */
+const _play60=play;
+play=function(){
+  /* appli quittée ou écran verrouillé : une vidéo ne peut pas démarrer sans toucher l'écran → on passe par le son du PC */
+  if(document.hidden&&Date.now()>=homeDownUntil){musicMode=true;const c=list[idx];if(c)handoff={id:c.id,t:0}}
+  else if(!document.hidden&&engine!=='audio')backAudio=false;
+  return _play60.apply(this,arguments);
+};
+/* toucher l'image pendant que le son tourne = lancer la vidéo à la même seconde (geste → lecture autorisée) */
+function backToVideo(){
+  const c=list[idx];if(!c||engine!=='audio'||!backAudio)return;
+  backAudio=false;const t=au.currentTime||0;au.pause();au.removeAttribute('src');musicMode=false;setMode('yt');
+  if(ytReady)ytLoad(c.id,t);
+}
+document.addEventListener('click',e=>{if(backAudio&&e.target.closest&&e.target.closest('#stage,#fmini,#wSpace'))backToVideo()},true);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
