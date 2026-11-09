@@ -426,6 +426,41 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
 .res .th span.lv,.fth .lvb{background:#e5322d;color:#fff;font-weight:700}
 .res .th span.lv{font-size:10px}
 
+/* v47 : accueil immersif */
+header.top,.greet,#feedSec{display:none!important}
+.hero{margin:0 -16px;border:0;border-radius:0;background:transparent;box-shadow:none;position:relative;overflow:visible}
+.hero .frame{position:relative}
+.hero .frame::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(180deg,rgba(9,9,12,0),var(--bg));pointer-events:none;z-index:2}
+.hero .frame:has(#ytbox[style*="visible"])::after{display:none}
+.hero #stage{aspect-ratio:4/3;background:#111}
+.htop{position:absolute;left:16px;right:16px;top:10px;z-index:4;display:flex;gap:8px}
+.htop .sbar{flex:1;width:auto;height:40px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+.htop #gear{width:40px;height:40px;flex:none;border-radius:13px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)}
+#mode{top:60px}
+.hinfo{padding:0 16px;margin-top:-64px;position:relative;z-index:3}
+.htext{gap:4px}
+#now{font:800 22px/1.12 var(--disp);letter-spacing:-.5px;-webkit-line-clamp:2}
+#heroCh{font-size:12.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#heroCh:empty{display:none}
+.hact{display:flex;gap:10px;padding:12px 16px 0}
+.hact #heroPlay{flex:1;width:auto;height:46px;border-radius:23px;gap:8px;font:750 15.5px/1 var(--font);box-shadow:none}
+.hact #heroPlay::after{content:attr(data-l)}
+.hact #heroPlay svg{width:17px;height:17px}
+.hmu{width:46px;height:46px;border-radius:23px;background:var(--s3);font-size:18px;display:flex;align-items:center;justify-content:center;flex:none}
+.hero #bar{margin:12px 16px 0;height:3px}
+#sugSec{margin-top:20px}
+#sugSec .sh{margin-bottom:6px}#sugSec .sh h2{font-size:16px}
+.sgr{display:flex;align-items:center;gap:10px;padding:5px 0;min-height:56px}
+.sgr img{width:84px;height:47px;border-radius:9px;object-fit:cover;flex:none;background:#222}
+.sgt{flex:1;min-width:0}
+.sgn{font-size:13.5px;font-weight:650;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sgr small{display:block;font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sgr.first small{color:var(--accT)}
+.sgb{width:32px;height:32px;border-radius:16px;background:var(--s2);font-size:14px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--txt)}
+.sgb.ad{font-size:18px;font-weight:400}
+.sgr.sk{height:57px;border-radius:10px;background:linear-gradient(90deg,var(--s2),var(--s3),var(--s2));background-size:200% 100%;animation:sk 1.2s linear infinite;margin-bottom:6px}
+@keyframes sk{to{background-position:-200% 0}}
+
 </style>
 </head>
 <body>
@@ -434,15 +469,14 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
 <header class="top">
   <div class="brand"><span class="dot" id="logoDot" aria-hidden="true"></span><h1 id="appName">Braise</h1></div>
   <div class="hbtns">
-    <button type="button" class="ib" id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
   </div>
 </header>
 
 <div class="greet"><span id="hello">Bonsoir.</span><br><span class="grad" id="hello2">On reprend ?</span></div>
 
-<button type="button" class="sbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg><span>Rechercher</span></button>
 
 <section class="hero" aria-label="En lecture">
+  <div class="htop"><button type="button" class="sbar" id="openSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg><span>Rechercher</span></button><button type="button" class="ib" id="gear" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
   <div class="frame"><div id="stage">
     <div class="ph" id="ph"><span>Choisis une vidéo pour allumer la lumière</span></div>
     <img id="cover" alt="">
@@ -452,11 +486,17 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
     <button type="button" class="htext" id="openPlayer" aria-label="Ouvrir le lecteur">
       <small id="heroLab">EN LECTURE</small>
       <span id="now">Rien pour l'instant</span>
+      <span id="heroCh"></span>
     </button>
-    <button type="button" class="bigplay" id="heroPlay" aria-label="Lecture ou pause"></button>
   </div>
+  <div class="hact"><button type="button" class="bigplay" id="heroPlay" aria-label="Lecture ou pause" data-l="Lecture"></button><button type="button" class="hmu" id="heroMu" aria-label="Écouter en son seul">🎵</button></div>
   <div id="bar"><div></div></div>
 </section>
+
+<div class="sec" id="sugSec" hidden>
+  <div class="sh"><h2>Suggestions</h2><button type="button" class="lnk" id="sugReload">Actualiser</button></div>
+  <div id="homeSug"></div>
+</div>
 
 <div class="sec" id="chSec" hidden>
   <div class="sh"><h2>Tes chaînes</h2><button type="button" class="lnk" id="allChans">Tout voir</button></div>
@@ -594,7 +634,7 @@ html,body,button,a,input,label,.view,main{touch-action:manipulation}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 46</div>
+  <div class="lab" id="ver">Version 47</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -916,7 +956,7 @@ function next(fin){
   fin=fin===true;
   const n=pickNext();
   if(n>=0){goTo(n,fin);return}
-  if($('#autoSug').checked)suggestNext(fin);
+  if(fin!==true||$('#autoSug').checked)suggestNext(fin); /* « suivant » à la main : toujours la 1re suggestion */
   else{const c=list[idx];if(fin&&c){list.splice(idx,1);idx=Math.max(0,Math.min(idx,list.length-1));save();render()}toast("Plus de vidéo nouvelle dans ta liste")}
 }
 /* suggestion automatique : d'abord la MÊME CHAÎNE (au hasard), sinon même artiste */
@@ -1602,7 +1642,7 @@ function uiCur(){
   if(c){$('#mThumb').src=thumb(c.id);$('#mTitle').textContent=c.title}
   uiHello();uiHeroLab();
   if(c&&c.id!==UI.lastId){UI.lastId=c.id;clearTimeout(UI.pfT);
-    UI.pfT=setTimeout(()=>{const u=upcoming(1);if((!u.length||u[0].kind!=='list')&&$('#autoSug').checked&&(API_KEY||relayUp()))prefetchSug(false)},4000)}
+    UI.pfT=setTimeout(()=>{const u=upcoming(1);if((!u.length||u[0].kind!=='list')&&(API_KEY||relayUp()))prefetchSug(false)},2500)}
   if($('#vPlayer').classList.contains('on'))uiSheet();
   uiQueue();
 }
@@ -1613,8 +1653,7 @@ function upcoming(n){
   if(shuffle){out.push({kind:'info',text:'Au hasard dans ta liste'});return out}
   for(let k=1;k<list.length&&out.length<n;k++){const i=(idx+k)%list.length;const v=list[i];if(!heard.has(v.id))out.push({kind:'list',i,v})}
   if(!out.length){
-    if(!$('#autoSug').checked)out.push({kind:'info',text:'Fin de ta liste'});
-    else if(upSug&&upSug.forId===c.id&&upSug.v)out.push({kind:'sug',v:upSug.v});
+    if(upSug&&upSug.forId===c.id&&upSug.v)out.push({kind:'sug',v:upSug.v});
     else if(upSug&&upSug.forId===c.id&&upSug.loading)out.push({kind:'info',text:'Je prépare la suite…'});
     else out.push({kind:'info',text:c.chT?'Une vidéo de '+c.chT:'Une suggestion automatique'});
   }
@@ -1828,6 +1867,96 @@ au.addEventListener('error',()=>{try{if(engine==='audio'&&(au.src||'').indexOf(H
 
 /* le PC télécharge déjà le son des 2 prochaines vidéos de la liste : le morceau suivant démarre tout de suite */
 function homePrefetch(){try{[1,2].forEach(k=>{const v=list[idx+k];if(v&&!v.tmp&&!heard.has(v.id)&&/^[\w-]{11}$/.test(v.id))fetch(HOME_AUDIO+'/prefetch?id='+v.id,{mode:'cors'}).catch(()=>{})})}catch(e){}}
+
+
+/* ================= v47 : accueil immersif + suggestions liées à la vidéo en cours ================= */
+const SG={forId:null,all:[],off:0,busy:false,cache:{}};
+try{SG.cache=JSON.parse(localStorage.getItem('bg_sug_v1')||'{}')||{}}catch(e){SG.cache={}}
+function sgSave(){try{const k=Object.keys(SG.cache).sort((a,b)=>SG.cache[b].at-SG.cache[a].at).slice(0,40);const o={};k.forEach(x=>o[x]=SG.cache[x]);SG.cache=o;localStorage.setItem('bg_sug_v1',JSON.stringify(o))}catch(e){}}
+function normT(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\(.*?\)|\[.*?\]/g,' ')
+  .replace(/\b(clip officiel|clip|official (music )?video|official audio|officiel|audio|visualizer|video|hd|4k|lyrics?|paroles)\b/g,' ').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()}
+function durS(d){if(!d)return 0;const p=String(d).split(':').map(Number);return p.some(isNaN)?0:p.reduce((a,b)=>a*60+b,0)}
+const VARIANT=/\b(lyrics?|paroles|slowed|reverb|sped up|8d|nightcore|1 ?hour|1 ?heure|loop|karaoke|instrumental|cover|reaction|reagit|réaction|remix|extended)\b/i;
+function sgQuery(cur){const w=normT(cur.title).split(' ').filter(x=>x.length>1);return w.slice(0,7).join(' ')||cur.chT||''}
+async function sgFetch(cur){
+  const c=SG.cache[cur.id];if(c&&Date.now()-c.at<12*3600e3&&c.items&&c.items.length)return c.items;
+  const q=sgQuery(cur);const art=guessArtist(cur);
+  const [byT,byC]=await Promise.all([q?searchVideos(q,{max:25,all:true}).catch(()=>[]):[],cur.ch?channelPage(cur.ch,null).then(r=>r.items).catch(()=>[]):[]]);
+  let byA=[];if(byT.length<8&&art&&normT(art)&&!q.includes(normT(art)))byA=await searchVideos(art,{max:15,all:true}).catch(()=>[]);
+  const pool=[];byT.forEach((v,r)=>pool.push({v,base:100-r*2.5}));byA.forEach((v,r)=>pool.push({v,base:72-r*3}));byC.slice(0,25).forEach((v,r)=>pool.push({v,base:58-r*1.5,same:1}));
+  const items=pool.map(p=>Object.assign({},p.v,{_b:p.base,_s:p.same||0}));
+  SG.cache[cur.id]={at:Date.now(),items};sgSave();return items;
+}
+function sgRank(cur,items){
+  const inList=new Set(list.map(x=>x.id));const curN=normT(cur.title);const art=normT(guessArtist(cur));
+  const words=new Set(curN.split(' ').filter(w=>w.length>2));const follow=new Set(chanArr().map(c=>c.id));
+  const cd=durS(cur.dur);const curVar=VARIANT.test(cur.title||'');
+  const best={};
+  items.forEach(v=>{
+    if(!v||!/^[\w-]{11}$/.test(v.id||'')||v.id===cur.id||heard.has(v.id)||inList.has(v.id)||isChanHidden(v)||hiddenByRule(v,hideRule(v.ch,v.chT)))return;
+    if(v.live&&!cur.live)return;
+    const d=durS(v.dur);if(d&&d<70)return; /* pas de Shorts */
+    const n=normT(v.title);if(!n||n===curN)return;
+    let s=v._b;
+    if(follow.has(v.ch))s+=14;
+    if(art&&art.length>2&&n.includes(art))s+=10;
+    let ov=0;n.split(' ').forEach(w=>{if(words.has(w))ov++});s+=Math.min(ov*3,12);
+    if(!curVar&&VARIANT.test(v.title||''))s-=30;
+    if(cd&&d){if(cd<=600&&d>1500)s-=25;if(cd>=1200&&d<300)s-=15}
+    if(v._s&&v.pub&&Date.now()-new Date(v.pub)<14*864e5)s+=6;
+    const key=n.slice(0,32);if(!best[key]||best[key].s<s)best[key]={v,s};
+  });
+  let arr=Object.values(best).sort((a,b)=>b.s-a.s).map(x=>x.v);
+  /* variété : jamais 3 fois de suite la même chaîne, 4 max dans les 10 premières */
+  const out=[];const cnt={};
+  while(arr.length){let k=arr.findIndex(v=>{const n=out.length;const ch=v.ch||v.chT;if((cnt[ch]||0)>=4&&out.length<10)return false;return !(n>=2&&(out[n-1].ch||out[n-1].chT)===ch&&(out[n-2].ch||out[n-2].chT)===ch)});if(k<0)k=0;const v=arr.splice(k,1)[0];out.push(v);const ch=v.ch||v.chT;cnt[ch]=(cnt[ch]||0)+1}
+  return out;
+}
+async function getSugs(cur,force){
+  if(!cur)return[];
+  if(force&&SG.cache[cur.id])delete SG.cache[cur.id];
+  const items=await sgFetch(cur);return sgRank(cur,items);
+}
+/* la suite automatique (bouton suivant, fin de vidéo) = la 1re suggestion */
+findSug=async function(cur){const s=await getSugs(cur);return s[0]||null};
+function sgRow(v,first){
+  const d=document.createElement('div');d.className='sgr';d.setAttribute('role','button');d.tabIndex=0;
+  d.innerHTML='<img loading="lazy" alt=""><div class="sgt"><div class="sgn"></div><small></small></div><button type="button" class="sgb mu" aria-label="Écouter en son seul">🎵</button><button type="button" class="sgb ad" aria-label="Ajouter à ma liste">+</button>';
+  d.querySelector('img').src=thumb(v.id);d.querySelector('.sgn').textContent=v.title;
+  d.querySelector('small').textContent=[first?'ENSUITE':'',v.chT,v.live?'🔴 DIRECT':v.dur].filter(Boolean).join(' · ');
+  if(first)d.classList.add('first');
+  d.onclick=()=>addItem(v,{playNow:true});
+  d.querySelector('.mu').onclick=e=>{e.stopPropagation();addItem(v,{playNow:true,music:true})};
+  d.querySelector('.ad').onclick=e=>{e.stopPropagation();addItem(v);uiSugs()};
+  return d;
+}
+function uiSugs(){
+  const sec=$('#sugSec'),box=$('#homeSug');const cur=list[idx];
+  if(!cur||!(API_KEY||relayUp())){sec.hidden=true;return}
+  sec.hidden=false;
+  if(SG.forId!==cur.id){
+    SG.forId=cur.id;SG.all=[];SG.off=0;box.textContent='';
+    for(let k=0;k<4;k++){const s=document.createElement('div');s.className='sgr sk';box.appendChild(s)}
+    const id=cur.id;
+    getSugs(cur).then(a=>{if(SG.forId!==id)return;SG.all=a;SG.off=0;drawSugs();
+      if(a[0]&&!(upSug&&upSug.forId===id&&upSug.v))upSug={forId:id,v:a[0]};if(typeof uiQueue==='function')uiQueue()}).catch(()=>{if(SG.forId===id){box.textContent='';sec.hidden=true}});
+    return;
+  }
+  drawSugs();
+}
+function drawSugs(){
+  const box=$('#homeSug');box.textContent='';const inList=new Set(list.map(x=>x.id));
+  const a=SG.all.filter(v=>!heard.has(v.id)&&!inList.has(v.id));
+  if(!a.length){$('#sugSec').hidden=true;return}
+  const page=a.slice(SG.off,SG.off+6);(page.length?page:a.slice(0,6)).forEach((v,k)=>box.appendChild(sgRow(v,SG.off===0&&k===0&&nothingNext())));
+}
+function nothingNext(){const u=upcoming(1);return !u.length||u[0].kind!=='list'}
+$('#sugReload').onclick=()=>{const n=SG.all.length;if(SG.off+6<n){SG.off+=6;drawSugs()}else{const c=list[idx];if(!c)return;SG.forId=null;if(SG.cache[c.id])delete SG.cache[c.id];uiSugs()}};
+$('#heroMu').onclick=()=>{const c=list[idx];if(!c){openSearch('');return}musicMode=true;play()};
+let _sgT=0;
+const _uiCur=uiCur;uiCur=function(){_uiCur();const c=list[idx];$('#heroCh').textContent=c?(c.chT||''):'';clearTimeout(_sgT);_sgT=setTimeout(uiSugs,c&&SG.forId!==c.id?700:0)};
+const _uiHeroLab=uiHeroLab;uiHeroLab=function(){_uiHeroLab();const c=list[idx];const p=c?posMap[c.id]:0;$('#heroPlay').dataset.l=playing?'Pause':(c&&!engine&&p>3?'Reprendre':'Lecture')};
+uiCur();
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
