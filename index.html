@@ -811,7 +811,7 @@ body.native.playing.watch #stage::after{content:"⧉";font-size:24px;padding:0}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 57</div>
+  <div class="lab" id="ver">Version 58</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -878,25 +878,35 @@ const API='https://www.googleapis.com/youtube/v3';
 const RELAY='https://background-relais.sylvano-doudou63.workers.dev';
 let relayDownUntil=0;
 const relayUp=()=>Date.now()>relayDownUntil;
+/* v58 : petite mémoire des réponses (évite de redemander la même chose : moins de quota et moins de blocages du relais) */
+const YC_LS='bg_ycache_v1';let YC={};try{YC=JSON.parse(localStorage.getItem(YC_LS)||'{}')||{}}catch(e){YC={}}
+function ycTTL(path){return path==='/search'?20*60e3:path==='/videos'?6*3600e3:30*60e3}
+function ycSave(){try{const k=Object.keys(YC);if(k.length>120)k.sort((a,b)=>YC[a].at-YC[b].at).slice(0,k.length-120).forEach(x=>delete YC[x]);localStorage.setItem(YC_LS,JSON.stringify(YC))}catch(e){try{YC={};localStorage.removeItem(YC_LS)}catch(x){}}}
 async function yapi(path,params){
   const viaRelay=!API_KEY;
   if(viaRelay&&!relayUp())throw Object.assign(new Error('nokey'),{reason:'nokey'});
   const u=new URL((viaRelay?RELAY:API)+path);const p=viaRelay?Object.assign({},params):Object.assign({},params,{key:API_KEY});Object.keys(p).forEach(k=>u.searchParams.set(k,p[k]));
-  /* jusqu'à 3 essais si le réseau a un raté (5G qui passe, etc.) */
+  const ck=path+'?'+Object.keys(params).sort().map(k=>k+'='+params[k]).join('&');
+  const hit=YC[ck];if(hit&&Date.now()-hit.at<ycTTL(path))return hit.j;
+  /* jusqu'à 2 essais par le relais, 3 avec ta clé (5G qui passe, etc.) */
   let r,last='';
-  for(let a=0;a<(viaRelay?1:3)&&!r;a++){
-    try{r=await fetchT(u.toString(),15000)}catch(e){last=String((e&&e.message)||e||'');if(a<2&&!viaRelay)await new Promise(z=>setTimeout(z,a?1500:500))}
+  const N=viaRelay?2:3;
+  for(let a=0;a<N&&!r;a++){
+    try{r=await fetchT(u.toString(),15000)}catch(e){last=String((e&&e.message)||e||'');if(a<N-1)await new Promise(z=>setTimeout(z,viaRelay?250:(a?1500:500)))}
   }
-  if(!r){if(viaRelay)relayDownUntil=Date.now()+300000;throw Object.assign(new Error('net'),{reason:'net',detail:last})}
+  if(!r){if(viaRelay)relayDownUntil=Date.now()+45000;if(hit)return hit.j;throw Object.assign(new Error('net'),{reason:'net',detail:last})}
   const j=await r.json().catch(()=>({}));
-  if(!r.ok){const reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||('http'+r.status);
-    if(viaRelay&&reason!=='quotaExceeded'&&reason!=='dailyLimitExceeded'&&reason!=='rateLimited')relayDownUntil=Date.now()+300000;
+  if(!r.ok){let reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||('http'+r.status);
+    if(r.status===429)reason='rateLimited';
+    if(viaRelay&&reason!=='quotaExceeded'&&reason!=='dailyLimitExceeded'&&reason!=='rateLimited')relayDownUntil=Date.now()+45000;
+    if(hit)return hit.j; /* on garde l'ancienne réponse plutôt qu'une page vide */
     throw Object.assign(new Error(reason),{reason})}
+  YC[ck]={at:Date.now(),j};ycSave();
   return j;
 }
 function errMsg(e){const r=e&&e.reason;
   if(r==='nokey')return "Ajoute ta clé YouTube dans les réglages (icône en haut à droite) pour utiliser la recherche.";
-  if(r==='keyless')return "Impossible d'afficher la chaîne sans clé pour le moment (les serveurs gratuits ne répondent pas). Ajoute ta clé dans les réglages, ou réessaie plus tard.";
+  if(r==='keyless')return "YouTube ne répond pas pour le moment. Réessaie dans une minute.";
   if(r==='rateLimited')return "Trop de demandes en peu de temps. Réessaie dans quelques minutes.";
   if(r==='quotaExceeded'||r==='dailyLimitExceeded')return "Le quota gratuit du jour est atteint. Il revient demain.";
   if(r==='keyInvalid'||r==='ipRefererBlocked'||r==='forbidden'||r==='accessNotConfigured'||/^http40[03]$/.test(r||''))return "La clé est refusée. Vérifie-la dans les réglages.";
