@@ -610,6 +610,13 @@ body.hasCur:not(.watch):not(.miniOff) #fmini{display:block}
 .vprog i{display:block;height:100%;background:#ff0033}
 .res .th{position:relative;overflow:hidden}
 
+/* v51 : transitions fluides du lecteur */
+#stage,#fmini{transition:left .32s cubic-bezier(.2,.8,.2,1),top .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1),height .32s cubic-bezier(.2,.8,.2,1),border-radius .32s}
+body.dragging #stage,body.dragging #fmini{transition:none}
+body.dragging #vPlayer{transition:none}
+#vPlayer.view{transform:translateY(40px)}
+#vPlayer.view.on{transform:none}
+
 </style>
 </head>
 <body>
@@ -714,6 +721,7 @@ body.hasCur:not(.watch):not(.miniOff) #fmini{display:block}
   </div>
   <div class="pacts">
     <button type="button" class="pill" id="pMusic">🎵 Son seul</button>
+    <button type="button" class="pill" id="pFloat">⧉ Fenêtre flottante</button>
     <button type="button" class="pill" id="pTimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span id="pTimerLab">Minuterie</span></button>
     <button type="button" class="pill" id="pSpeed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 14l4-4"/><path d="M3.3 17a10 10 0 1 1 17.4 0"/></svg><span id="pSpeedLab">1×</span></button>
     <button type="button" class="pill" id="pChan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg>La chaîne</button>
@@ -789,7 +797,7 @@ body.hasCur:not(.watch):not(.miniOff) #fmini{display:block}
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 50</div>
+  <div class="lab" id="ver">Version 51</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -1219,13 +1227,16 @@ function flushPos(){const cv=list[idx];if(!cv)return;try{const t=engine==='audio
 
 /* lecteur iPhone : sans « playsinline », iOS ouvre la vidéo dans son lecteur plein écran (avec image dans l'image) */
 const LS_N='bg_native_v1';
-function nativeFs(){try{return localStorage.getItem(LS_N)!=='0'}catch(e){return true}} /* v49 : lecteur iPhone (il flotte quand on glisse vers le haut, et reste en quittant l'appli) */
-window.onYouTubeIframeAPIReady=()=>{
+function nativeFs(){try{return localStorage.getItem(LS_N)==='1'}catch(e){return false}} /* v51 : vidéo dans l'appli (fluide comme YouTube) ; bouton ⧉ pour le lecteur iPhone flottant */
+window.onYouTubeIframeAPIReady=()=>{makeYt();ytTick()};
+function makeYt(){
   yt=new YT.Player('player',{host:'https://www.youtube-nocookie.com',playerVars:{playsinline:nativeFs()?0:1,rel:0},
     events:{onReady:()=>{ytReady=true;if((engine==='yt'||engine==='loading')&&list[idx])ytLoad(list[idx].id,curStart)},
       onStateChange:e=>{if(engine!=='yt')return;setPlaying(e.data===YT.PlayerState.PLAYING);
         if(e.data===YT.PlayerState.ENDED){endHeard(yt.getDuration());savePos((list[idx]||{}).id,0,true);next(true)}
         if(e.data===YT.PlayerState.PAUSED&&document.hidden)tryResume()}}});
+}
+function ytTick(){
   setInterval(()=>{if(engine==='yt'&&ytReady&&yt.getDuration){syncYtState();const d=yt.getDuration();if(d){if(playing){checkHeard(yt.getCurrentTime(),d);const cv=list[idx];if(cv)savePos(cv.id,yt.getCurrentTime())}$('#bar div').style.width=(yt.getCurrentTime()/d*100)+'%'}}},1000);
 };
 
@@ -2219,7 +2230,7 @@ document.addEventListener('visibilitychange',()=>{
 let _pf49='';setInterval(()=>{const c=list[idx];if(engine==='yt'&&playing&&c&&c.id!==_pf49&&Date.now()>homeDownUntil){_pf49=c.id;fetch(HOME_AUDIO+'/prefetch?id='+c.id,{mode:'cors'}).catch(()=>{})}},4000);
 setInterval(stageState,700);stageState();
 /* v48 : passage unique à la vidéo dans l'appli (comme YouTube) ; l'ancien lecteur iPhone reste disponible dans les réglages */
-try{if(!localStorage.getItem('bg_v49mig')){localStorage.setItem(LS_N,'1');localStorage.setItem('bg_v49mig','1');const n=$('#nativeFs');if(n)n.checked=true}}catch(e){}
+try{if(!localStorage.getItem('bg_v51mig')){localStorage.setItem(LS_N,'0');localStorage.setItem('bg_v51mig','1');const n=$('#nativeFs');if(n)n.checked=false}}catch(e){}
 
 /* ================= v49 ================= */
 /* barre de progression rouge sur les vignettes + reprise là où tu t'étais arrêté */
@@ -2236,6 +2247,47 @@ const _resCard49=resCard;resCard=function(v,n){const d=_resCard49(v,n);addProg(d
   o.querySelector('.fcl').onclick=e=>{e.stopPropagation();try{userPaused=true;engine==='audio'?au.pause():yt.pauseVideo()}catch(x){}document.body.classList.add('miniOff')};
   setInterval(()=>{o.querySelector('.fpp').innerHTML=playing?ICON_PAUSE:ICON_PLAY;const[t,d]=ptime();o.querySelector('.fbar i').style.width=(d?Math.min(100,t/d*100):0)+'%'},500);
 })();
+
+/* ================= v51 : fluide comme YouTube ================= */
+const SAT=(()=>{const p=document.createElement('div');p.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top,0px);width:1px;visibility:hidden';document.body.appendChild(p);return()=>p.offsetHeight||0})();
+let dragY=0;
+function placeStage(){
+  const s=$('#stage'),f=$('#fmini'),b=document.body,c=list[idx];if(!s)return;
+  const vw=window.innerWidth,vh=window.innerHeight;let r;
+  if(!c||b.classList.contains('miniOff'))r={l:-3000,t:0,w:160,h:90,rad:0};
+  else if(b.classList.contains('watch')){const h=Math.min(vw*9/16,vh*.6);r={l:0,t:SAT()+dragY,w:vw,h,rad:0}}
+  else{const w=Math.min(vw*.58,300),h=w*9/16;const tb=$('#tabbar');const top=(tb&&tb.offsetHeight?tb.getBoundingClientRect().top:vh)-8-h;r={l:vw-w-8,t:top,w,h,rad:12}}
+  const st=`left:${r.l}px;top:${r.t}px;width:${r.w}px;height:${r.h}px;right:auto;bottom:auto;border-radius:${r.rad}px`;
+  s.style.cssText=st;if(f)f.style.cssText=st;
+}
+const _stageState51=stageState;stageState=function(){_stageState51();placeStage()};
+const _ov51=openView;openView=function(id){_ov51(id);placeStage()};
+const _cv51=closeViews;closeViews=function(){_cv51();dragY=0;placeStage()};
+window.addEventListener('resize',placeStage);
+/* glisser la page de lecture vers le bas : la vidéo suit le doigt puis file dans le coin */
+(function(){const v=$('#vPlayer');let y0=null,x0=0,dy=0;
+  v.addEventListener('touchstart',e=>{y0=v.scrollTop<=0?e.touches[0].clientY:null;x0=e.touches[0].clientX;dy=0},{passive:true});
+  v.addEventListener('touchmove',e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy<=0||Math.abs(e.touches[0].clientX-x0)>dy){return}
+    document.body.classList.add('dragging');v.style.transform='translateY('+dy+'px)';v.style.opacity=String(Math.max(.3,1-dy/500));dragY=dy;placeStage()},{passive:true});
+  v.addEventListener('touchend',()=>{if(y0===null)return;y0=null;document.body.classList.remove('dragging');v.style.transform='';v.style.opacity='';
+    if(dy>90)closeViews();else{dragY=0;placeStage()}},{passive:true});
+})();
+/* ⧉ : passer la vidéo dans le lecteur de l'iPhone (elle flottera en glissant vers le haut), ou revenir dans l'appli */
+function uiFloatBtn(){const b=$('#pFloat');if(b)b.textContent=nativeFs()?'▣ Revenir dans l\'appli':'⧉ Fenêtre flottante'}
+function rebuildYt(native){
+  try{localStorage.setItem(LS_N,native?'1':'0')}catch(e){}const n=$('#nativeFs');if(n)n.checked=native;
+  const c=list[idx];const[t]=ptime();if(c&&t>3)savePos(c.id,t,true);curStart=t||curStart;
+  try{if(yt&&yt.destroy)yt.destroy()}catch(e){}ytReady=false;
+  if(!document.getElementById('player')){const d=document.createElement('div');d.id='player';$('#ytbox').appendChild(d)}
+  if(engine!=='audio')engine='loading';
+  try{makeYt()}catch(e){}
+  uiFloatBtn();
+  toast(native?'Touche ▶ sur la vidéo, puis glisse vers le haut : elle flottera, même hors de l\'appli':'La vidéo se lit de nouveau dans l\'appli');
+}
+$('#pFloat').onclick=()=>rebuildYt(!nativeFs());
+uiFloatBtn();
+setTimeout(placeStage,300);
+setInterval(placeStage,1000);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
