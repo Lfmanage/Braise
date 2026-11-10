@@ -818,7 +818,7 @@ body.native.playing.watch.engAudio #stage::after{content:"▶";font-size:26px;pa
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 65</div>
+  <div class="lab" id="ver">Version 66</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -2592,6 +2592,47 @@ sgFetch=async function(cur){
 /* si rien n'est venu (YouTube occupé), nouvel essai tout seul toutes les 90 s */
 setInterval(()=>{try{const cur=list[idx];if(!cur||document.hidden)return;
   if(SG.forId===cur.id&&SG.done&&!(SG.all||[]).length&&SG.fail)sgRetry(cur.id)}catch(e){}},90000);
+
+/* ================= v66 : aller chercher plus loin dans la chaîne =================
+   Cas réel : les 30 dernières vidéos de la chaîne étaient toutes déjà écoutées ou dans ta période masquée → 0 suggestion.
+   Maintenant on remonte dans les vidéos plus anciennes de la chaîne (1 unité de quota par page de 50) jusqu'à en trouver assez. */
+const _sgRank66=sgRank;sgRank=function(cur,items){return _sgRank66(cur,items).filter(v=>!hiddenByRule(v,hideRule(v.ch,v.chT)))};
+function sgFresh(cur){const inList=new Set(list.map(x=>x.id));return v=>v&&v.id&&v.id!==cur.id&&!heard.has(v.id)&&!inList.has(v.id)&&!hiddenByRule(v,hideRule(v.ch,v.chT))&&!isChanHidden(v)}
+async function chanFresh(chId,fresh,want,maxPages){
+  let p=await channelPage(chId,null);let all=p.items.slice();let pg=0;
+  while(all.filter(fresh).length<want&&p.next&&pg<maxPages){pg++;try{p=await channelPage(chId,p.next)}catch(e){break}all=all.concat(p.items)}
+  return all;
+}
+sgFetch=async function(cur){
+  const K='v3:'+cur.id;const c=SG.cache[K];const fresh=sgFresh(cur);
+  const freshN=c&&c.items?c.items.filter(fresh).length:0;
+  if(c&&Date.now()-c.at<12*3600e3&&freshN>=6){SG.raw=c.items.length;SG.fail=false;return c.items}
+  SG.fail=false;SG.err='';const bad=e=>{SG.fail=true;SG.err=String((e&&(e.reason||e.message))||e||'erreur').slice(0,60);return[]};
+  let tags=SG.tags&&SG.tags[cur.id];
+  if(!tags){try{const j=await yapi('/videos',{part:'snippet',id:cur.id});const s=j.items&&j.items[0]&&j.items[0].snippet;tags=(s&&s.tags)||[];SG.tags[cur.id]=tags.slice(0,12);if(s&&!cur.ch&&s.channelId){cur.ch=s.channelId;cur.chT=dec(s.channelTitle||'')}}catch(e){tags=[];bad(e)}}
+  const who=personOf(tags,cur);const wn=normT(who);
+  /* 1) la chaîne : on remonte jusqu'à 8 pages (400 vidéos) pour trouver au moins 15 vidéos pas encore vues */
+  let byC=[];if(cur.ch){try{byC=await chanFresh(cur.ch,fresh,15,7)}catch(e){bad(e)}}
+  const fC=byC.filter(fresh);
+  /* 2) la personne : seulement si elle n'est pas la chaîne elle-même, ou si la chaîne ne suffit pas */
+  const chanIsPerson=!wn||normT(cur.chT||'').includes(wn);
+  let byP=[];if(who&&!(chanIsPerson&&fC.length>=8))byP=await searchVideos(who,{max:25,all:true}).catch(bad);
+  const P=byP.filter(v=>fresh(v)&&(v.ch===cur.ch||(wn&&(normT(v.title).includes(wn)||normT(v.chT).includes(wn)))));
+  const pool=[];fC.slice(0,60).forEach((v,r)=>pool.push(Object.assign({},v,{_b:100-r*0.8,_s:1})));P.forEach((v,r)=>pool.push(Object.assign({},v,{_b:95-r*1.5,_s:0})));
+  SG.raw=byC.length+byP.length;
+  if(pool.length){SG.cache[K]={at:Date.now(),items:pool};sgSave();return pool}
+  if(c&&c.items&&c.items.length)return c.items;
+  return pool;
+};
+/* favoris : pareil, on remonte un peu si les plus récentes sont déjà vues ou masquées */
+favVideos=async function(exceptCh){
+  const out=[];const fresh=sgFresh({id:''});
+  await Promise.all(favs.filter(c=>c&&c.id&&c.id!==exceptCh&&!hiddenCh.some(h=>h.id===c.id)).slice(0,8).map(async c=>{
+    try{let h=FAVV[c.id];if(!h||Date.now()-h.at>2*3600e3||h.items.filter(fresh).length<3){const all=await chanFresh(c.id,fresh,8,3);h=FAVV[c.id]={at:Date.now(),items:all.filter(fresh).slice(0,20)}}
+      h.items.forEach(v=>{if(!v.chT)v.chT=c.name;out.push(v)})}catch(e){}}));
+  out.sort((a,b)=>String(b.pub||'').localeCompare(String(a.pub||'')));return out;
+};
+setTimeout(()=>{try{refreshFavOnly()}catch(e){}},2500);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
