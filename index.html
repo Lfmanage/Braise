@@ -818,7 +818,7 @@ body.native.playing.watch.engAudio #stage::after{content:"▶";font-size:26px;pa
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 64</div>
+  <div class="lab" id="ver">Version 65</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -883,18 +883,24 @@ async function audioUrl(id){
 /* ================= API YouTube (clé gratuite de l'utilisateur) ================= */
 const API='https://www.googleapis.com/youtube/v3';
 const RELAY='https://background-relais.sylvano-doudou63.workers.dev';
-let relayDownUntil=0;
+let relayDownUntil=0,rlUntil=0;
 const relayUp=()=>Date.now()>relayDownUntil;
 /* v58 : petite mémoire des réponses (évite de redemander la même chose : moins de quota et moins de blocages du relais) */
 const YC_LS='bg_ycache_v1';let YC={};try{YC=JSON.parse(localStorage.getItem(YC_LS)||'{}')||{}}catch(e){YC={}}
-function ycTTL(path){return path==='/search'?20*60e3:path==='/videos'?6*3600e3:30*60e3}
-function ycSave(){try{const k=Object.keys(YC);if(k.length>120)k.sort((a,b)=>YC[a].at-YC[b].at).slice(0,k.length-120).forEach(x=>delete YC[x]);localStorage.setItem(YC_LS,JSON.stringify(YC))}catch(e){try{YC={};localStorage.removeItem(YC_LS)}catch(x){}}}
+/* v65 : recherches gardées 12 h (une recherche coûte 100 fois plus de quota qu'une page de chaîne) ; directs 5 min */
+function ycTTL(path,params){if(path==='/search'){const p=params||{};return p.eventType==='live'?5*60e3:p.order==='date'?3600e3:12*3600e3}return path==='/videos'?6*3600e3:30*60e3}
+/* v65 : on allège les réponses (sans images ni descriptions) pour pouvoir en garder beaucoup, même vieilles, en secours */
+function ycSlim(j){try{if(!j||!Array.isArray(j.items))return j;return Object.assign({},j,{items:j.items.map(i=>{if(!i||!i.snippet)return i;const s=Object.assign({},i.snippet);delete s.thumbnails;delete s.description;delete s.localized;return Object.assign({},i,{snippet:s})})})}catch(e){return j}}
+function ycSave(){const keep=n=>{const k=Object.keys(YC).sort((a,b)=>YC[b].at-YC[a].at);k.slice(n).forEach(x=>delete YC[x]);localStorage.setItem(YC_LS,JSON.stringify(YC))};
+  try{keep(150)}catch(e){try{keep(60)}catch(x){try{keep(20)}catch(z){}}}}
 async function yapi(path,params){
   const viaRelay=!API_KEY;
-  if(viaRelay&&!relayUp())throw Object.assign(new Error('nokey'),{reason:'nokey'});
-  const u=new URL((viaRelay?RELAY:API)+path);const p=viaRelay?Object.assign({},params):Object.assign({},params,{key:API_KEY});Object.keys(p).forEach(k=>u.searchParams.set(k,p[k]));
   const ck=path+'?'+Object.keys(params).sort().map(k=>k+'='+params[k]).join('&');
-  const hit=YC[ck];if(hit&&Date.now()-hit.at<ycTTL(path))return hit.j;
+  const hit=YC[ck];if(hit&&Date.now()-hit.at<ycTTL(path,params))return hit.j;
+  /* relais coupé ou limite de l'heure atteinte : on répond avec la dernière réponse connue, même ancienne */
+  if(viaRelay&&!relayUp()){if(hit)return hit.j;throw Object.assign(new Error('nokey'),{reason:'nokey'})}
+  if(viaRelay&&Date.now()<rlUntil){if(hit)return hit.j;throw Object.assign(new Error('rateLimited'),{reason:'rateLimited'})}
+  const u=new URL((viaRelay?RELAY:API)+path);const p=viaRelay?Object.assign({},params):Object.assign({},params,{key:API_KEY});Object.keys(p).forEach(k=>u.searchParams.set(k,p[k]));
   /* jusqu'à 2 essais par le relais, 3 avec ta clé (5G qui passe, etc.) */
   let r,last='';
   const N=viaRelay?2:3;
@@ -904,11 +910,12 @@ async function yapi(path,params){
   if(!r){if(viaRelay)relayDownUntil=Date.now()+45000;if(hit)return hit.j;throw Object.assign(new Error('net'),{reason:'net',detail:last})}
   const j=await r.json().catch(()=>({}));
   if(!r.ok){let reason=(j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||('http'+r.status);
-    if(r.status===429)reason='rateLimited';
+    if(r.status===429){reason='rateLimited';if(viaRelay)rlUntil=(Math.floor(Date.now()/3600e3)+1)*3600e3+5000}
+    if(reason==='quotaExceeded'||reason==='dailyLimitExceeded')rlUntil=Date.now()+20*60e3;
     if(viaRelay&&reason!=='quotaExceeded'&&reason!=='dailyLimitExceeded'&&reason!=='rateLimited')relayDownUntil=Date.now()+45000;
     if(hit)return hit.j; /* on garde l'ancienne réponse plutôt qu'une page vide */
     throw Object.assign(new Error(reason),{reason})}
-  YC[ck]={at:Date.now(),j};ycSave();
+  YC[ck]={at:Date.now(),j:ycSlim(j)};ycSave();
   return j;
 }
 function errMsg(e){const r=e&&e.reason;
@@ -2487,7 +2494,7 @@ drawSugs=function(){
   if(!out.length&&!resume){
     if(!cur&&!favs.length){$('#sugSec').hidden=true;$('#sugReload').hidden=true;return}
     const e=document.createElement('div');e.className='hempty';e.textContent=HCHIP==='chans'?'Ajoute des chaînes en favori (☆ Favori) pour voir leurs vidéos ici.':HCHIP==='live'?'Aucun direct en cours.':(SG.fail?'YouTube ne répond pas. '+sgWhy()+' — touche pour réessayer.':(SG.forId===(cur&&cur.id)&&!SG.busy&&SG.done?'Rien de nouveau pour cette vidéo. '+sgWhy()+' — touche pour réessayer.':'Je prépare tes suggestions…'));
-    if(HCHIP==='all'&&cur&&(SG.fail||SG.done)){e.style.cursor='pointer';e.onclick=()=>{delete SG.cache[cur.id];SG.forId=null;SG.fail=false;SG.done=false;uiSugs()}}
+    if(HCHIP==='all'&&cur&&(SG.fail||SG.done)){e.style.cursor='pointer';e.onclick=()=>sgRetry(cur.id)}
     box.appendChild(e);$('#sugReload').hidden=true;return}
   $('#sugReload').hidden=out.length<=(SG.n||10);
   const nn=nothingNext();out.slice(0,SG.n||10).forEach((v,k)=>box.appendChild(sgRow(v,HCHIP==='all'&&k===0&&nn&&!v._fav)));
@@ -2535,8 +2542,56 @@ function sgWhy(){return 'Détail : '+(SG.raw||0)+' reçues · '+((SG.all||[]).le
 const _uiWatch64=uiWatch;uiWatch=function(){_uiWatch64();
   const c=list[idx];if(!c||SG.forId!==c.id||!SG.done)return;const box=$('#pSugs');
   if(!box.children.length){const e=document.createElement('div');e.className='hempty';e.style.cssText='padding:14px 12px;font-size:13px;opacity:.8;cursor:pointer';e.textContent='Aucune suggestion pour cette vidéo. '+sgWhy()+' — touche pour réessayer';
-    e.onclick=()=>{delete SG.cache[c.id];SG.forId=null;SG.done=false;uiSugs()};box.appendChild(e)}
+    e.onclick=()=>sgRetry(c.id);box.appendChild(e)}
 };
+
+
+/* ================= v65 : des suggestions à chaque fois =================
+   Avant : si YouTube ou le relais refusait une seule fois (trop de demandes dans l'heure), un résultat VIDE était gardé 12 h → plus rien.
+   Maintenant : jamais de résultat vide gardé, mémoire durable des vidéos de chaque chaîne, beaucoup moins de demandes, nouvel essai tout seul. */
+function sgRetry(id){delete SG.cache[id];delete SG.cache['v3:'+id];SG.forId=null;SG.done=false;SG.fail=false;try{uiSugs()}catch(e){}}
+/* on jette les résultats vides gardés par les anciennes versions */
+try{Object.keys(SG.cache).forEach(k=>{const c=SG.cache[k];if(!c||!c.items||!c.items.length)delete SG.cache[k]});sgSave()}catch(e){}
+/* mémoire durable des vidéos de chaque chaîne (sert de secours quand YouTube ne répond pas) */
+const CHC_LS='bg_chc_v1';let CHC={};try{CHC=JSON.parse(localStorage.getItem(CHC_LS)||'{}')||{}}catch(e){CHC={}}
+function chcSave(){try{const k=Object.keys(CHC).sort((a,b)=>CHC[b].at-CHC[a].at).slice(0,30);const o={};k.forEach(x=>o[x]=CHC[x]);CHC=o;localStorage.setItem(CHC_LS,JSON.stringify(o))}catch(e){}}
+const _channelPage65=channelPage;
+channelPage=async function(chId,token){
+  const stale=()=>(!token&&CHC[chId]&&CHC[chId].items&&CHC[chId].items.length)?{items:CHC[chId].items.map(v=>Object.assign({},v)),next:null,total:0,stale:true}:null;
+  let r;try{r=await _channelPage65(chId,token)}catch(e){const st=stale();if(st)return st;throw e}
+  if(!token&&r&&r.items&&r.items.length){CHC[chId]={at:Date.now(),items:r.items.slice(0,50).map(v=>({id:v.id,title:v.title,ch:v.ch,chT:v.chT,pub:v.pub}))};chcSave()}
+  else if(!token&&(!r||!r.items||!r.items.length)){const st=stale();if(st)return st}
+  return r;
+};
+/* suggestions : d'abord la chaîne (presque gratuit), la recherche seulement si besoin (et gardée 12 h) */
+sgFetch=async function(cur){
+  const K='v3:'+cur.id;const c=SG.cache[K];
+  if(c&&Date.now()-c.at<12*3600e3&&c.items&&c.items.length){SG.raw=c.items.length;SG.fail=false;return c.items}
+  SG.fail=false;SG.err='';const bad=e=>{SG.fail=true;SG.err=String((e&&(e.reason||e.message))||e||'erreur').slice(0,60);return[]};
+  let tags=SG.tags&&SG.tags[cur.id];
+  if(!tags){try{const j=await yapi('/videos',{part:'snippet',id:cur.id});const s=j.items&&j.items[0]&&j.items[0].snippet;tags=(s&&s.tags)||[];SG.tags[cur.id]=tags.slice(0,12);if(s&&!cur.ch&&s.channelId){cur.ch=s.channelId;cur.chT=dec(s.channelTitle||'')}}catch(e){tags=[];bad(e)}}
+  const who=personOf(tags,cur);const wn=normT(who);
+  const inList=new Set(list.map(x=>x.id));
+  const fresh=v=>v&&v.id!==cur.id&&!heard.has(v.id)&&!inList.has(v.id)&&!hiddenByRule(v,hideRule(v.ch,v.chT))&&!isChanHidden(v);
+  /* 1) la chaîne : jusqu'à 3 pages (1 unité de quota chacune) */
+  let byC=[];
+  if(cur.ch){try{let p=await channelPage(cur.ch,null);byC=p.items.slice();let pg=0;
+    while(byC.filter(fresh).length<12&&p.next&&pg<2){pg++;p=await channelPage(cur.ch,p.next);byC=byC.concat(p.items)}}catch(e){if(!byC.length)bad(e)}}
+  /* 2) la personne : seulement si elle n'est pas la chaîne elle-même, ou si la chaîne ne suffit pas */
+  const chanIsPerson=!wn||normT(cur.chT||'').includes(wn);
+  let byP=[];
+  if(who&&!(chanIsPerson&&byC.filter(fresh).length>=8))byP=await searchVideos(who,{max:25,all:true}).catch(bad);
+  const P=byP.filter(v=>v.ch===cur.ch||(wn&&(normT(v.title).includes(wn)||normT(v.chT).includes(wn))));
+  const pool=[];byC.slice(0,90).forEach((v,r)=>pool.push(Object.assign({},v,{_b:100-r*0.8,_s:1})));P.forEach((v,r)=>pool.push(Object.assign({},v,{_b:95-r*1.5,_s:0})));
+  SG.raw=pool.length;
+  if(pool.length){SG.cache[K]={at:Date.now(),items:pool};sgSave();return pool}
+  /* rien de neuf : l'ancienne réponse (même périmée) plutôt que rien */
+  if(c&&c.items&&c.items.length){SG.raw=c.items.length;return c.items}
+  return pool;
+};
+/* si rien n'est venu (YouTube occupé), nouvel essai tout seul toutes les 90 s */
+setInterval(()=>{try{const cur=list[idx];if(!cur||document.hidden)return;
+  if(SG.forId===cur.id&&SG.done&&!(SG.all||[]).length&&SG.fail)sgRetry(cur.id)}catch(e){}},90000);
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
