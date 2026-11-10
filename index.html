@@ -818,7 +818,7 @@ body.native.playing.watch.engAudio #stage::after{content:"▶";font-size:26px;pa
   <div class="lab" id="kMsg"></div>
   </div>
   <div class="lab" id="hCount"></div><div class="big g2"><button type="button" id="hClear">Effacer l'historique</button><button type="button" id="clearListBtn">Vider ma liste</button><button type="button" id="undoBtn">Liste d'avant</button><button type="button" id="cleanBtn">Nettoyer la liste</button></div>
-  <div class="lab" id="ver">Version 63</div>
+  <div class="lab" id="ver">Version 64</div>
   <div hidden><details class="steps"><summary>Comment obtenir une clé ?</summary>La clé sert à la recherche, aux vidéos d'une même chaîne et aux titres. Elle reste dans ton iPhone, elle n'est jamais mise en ligne.<br><br><b>Pour l'obtenir :</b> console.cloud.google.com → nouveau projet → « API et services » → activer « YouTube Data API v3 » → Identifiants → Créer une clé API. Restreins-la au site <b>https://lfmanage.github.io/*</b> et à l'API YouTube Data v3.</details></div><details class="steps" id="hidChans" hidden><summary id="hidCount">Chaînes masquées</summary><div id="hidList"></div></details>
 </div></section>
 
@@ -2079,12 +2079,12 @@ function sgQuery(cur){const w=normT(cur.title).split(' ').filter(x=>x.length>1);
 async function sgFetch(cur){
   const c=SG.cache[cur.id];if(c&&Date.now()-c.at<12*3600e3&&c.items&&c.items.length)return c.items;
   const q=sgQuery(cur);const art=guessArtist(cur);
-  SG.fail=false;const _f=()=>{SG.fail=true;return[]};
+  SG.fail=false;SG.err='';const _f=e=>{SG.fail=true;SG.err=String((e&&e.message)||e||'erreur').slice(0,80);return[]};
   const [byT,byC]=await Promise.all([q?searchVideos(q,{max:25,all:true}).catch(_f):[],cur.ch?channelPage(cur.ch,null).then(r=>r.items).catch(_f):[]]);
   let byA=[];if(byT.length<8&&art&&normT(art)&&!q.includes(normT(art)))byA=await searchVideos(art,{max:15,all:true}).catch(()=>[]);
   const pool=[];byT.forEach((v,r)=>pool.push({v,base:100-r*2.5}));byA.forEach((v,r)=>pool.push({v,base:72-r*3}));byC.slice(0,25).forEach((v,r)=>pool.push({v,base:58-r*1.5,same:1}));
   const items=pool.map(p=>Object.assign({},p.v,{_b:p.base,_s:p.same||0}));
-  if(items.length){SG.cache[cur.id]={at:Date.now(),items};sgSave()}return items;
+  SG.raw=items.length;if(items.length){SG.cache[cur.id]={at:Date.now(),items};sgSave()}return items;
 }
 function sgRank(cur,items){
   const inList=new Set(list.map(x=>x.id));const curN=normT(cur.title);const art=normT(guessArtist(cur));
@@ -2486,7 +2486,7 @@ drawSugs=function(){
   const resume=cur&&!playing&&HCHIP==='all';
   if(!out.length&&!resume){
     if(!cur&&!favs.length){$('#sugSec').hidden=true;$('#sugReload').hidden=true;return}
-    const e=document.createElement('div');e.className='hempty';e.textContent=HCHIP==='chans'?'Ajoute des chaînes en favori (☆ Favori) pour voir leurs vidéos ici.':HCHIP==='live'?'Aucun direct en cours.':(SG.fail?'YouTube ne répond pas pour le moment. Touche ici pour réessayer.':(SG.forId===(cur&&cur.id)&&!SG.busy&&SG.done?'Rien de nouveau pour cette vidéo (tout est déjà écouté ou masqué). Touche ici pour réessayer.':'Je prépare tes suggestions…'));
+    const e=document.createElement('div');e.className='hempty';e.textContent=HCHIP==='chans'?'Ajoute des chaînes en favori (☆ Favori) pour voir leurs vidéos ici.':HCHIP==='live'?'Aucun direct en cours.':(SG.fail?'YouTube ne répond pas. '+sgWhy()+' — touche pour réessayer.':(SG.forId===(cur&&cur.id)&&!SG.busy&&SG.done?'Rien de nouveau pour cette vidéo. '+sgWhy()+' — touche pour réessayer.':'Je prépare tes suggestions…'));
     if(HCHIP==='all'&&cur&&(SG.fail||SG.done)){e.style.cursor='pointer';e.onclick=()=>{delete SG.cache[cur.id];SG.forId=null;SG.fail=false;SG.done=false;uiSugs()}}
     box.appendChild(e);$('#sugReload').hidden=true;return}
   $('#sugReload').hidden=out.length<=(SG.n||10);
@@ -2528,6 +2528,15 @@ document.addEventListener('touchend',function k(){try{KEEP.play().then(()=>KEEP.
 document.addEventListener('visibilitychange',()=>{
   try{if(document.hidden){const c=list[idx];if(c&&!userPaused&&(playing||engine==='yt'))KEEP.play().catch(()=>{})}else KEEP.pause()}catch(e){}
 });
+
+
+/* v64 : quand il n'y a aucune suggestion, dire pourquoi (diagnostic lisible) */
+function sgWhy(){return 'Détail : '+(SG.raw||0)+' reçues · '+((SG.all||[]).length)+' gardées'+(SG.fail?' · erreur : '+(SG.err||'?'):'')+' · '+(relayUp()?'relais ok':'relais coupé')+' · '+(heard.size)+' écoutées/masquées · '+(hides.length)+' règle(s) de dates'}
+const _uiWatch64=uiWatch;uiWatch=function(){_uiWatch64();
+  const c=list[idx];if(!c||SG.forId!==c.id||!SG.done)return;const box=$('#pSugs');
+  if(!box.children.length){const e=document.createElement('div');e.className='hempty';e.style.cssText='padding:14px 12px;font-size:13px;opacity:.8;cursor:pointer';e.textContent='Aucune suggestion pour cette vidéo. '+sgWhy()+' — touche pour réessayer';
+    e.onclick=()=>{delete SG.cache[c.id];SG.forId=null;SG.done=false;uiSugs()};box.appendChild(e)}
+};
 
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
